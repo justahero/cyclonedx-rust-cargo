@@ -17,8 +17,7 @@
  */
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
-    ValidationResult,
+    FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -29,20 +28,15 @@ pub struct Composition {
 }
 
 impl Validate for Composition {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let aggregate_context =
             context.extend_context_with_struct_field("Composition", "aggregate");
 
-        results.push(self.aggregate.validate_with_context(aggregate_context)?);
+        result.merge(self.aggregate.validate_with_context(aggregate_context));
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -50,21 +44,16 @@ impl Validate for Composition {
 pub struct Compositions(pub Vec<Composition>);
 
 impl Validate for Compositions {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, composition) in self.0.iter().enumerate() {
             let composition_context =
                 context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(composition.validate_with_context(composition_context)?);
+            result.merge(composition.validate_with_context(composition_context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -110,18 +99,13 @@ impl AggregateType {
 }
 
 impl Validate for AggregateType {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            AggregateType::UnknownAggregateType(_) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown aggregate type".to_string(),
-                    context,
-                }],
+            AggregateType::UnknownAggregateType(_) => ValidationResult::failure(FailureReason {
+                message: "Unknown aggregate type".to_string(),
+                context,
             }),
-            _ => Ok(ValidationResult::Passed),
+            _ => ValidationResult::ok(),
         }
     }
 }
@@ -141,10 +125,9 @@ mod test {
             assemblies: Some(vec![BomReference("reference".to_string())]),
             dependencies: Some(vec![BomReference("reference".to_string())]),
         }])
-        .validate()
-        .expect("Error while validating");
+        .validate();
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -154,23 +137,20 @@ mod test {
             assemblies: Some(vec![BomReference("reference".to_string())]),
             dependencies: Some(vec![BomReference("reference".to_string())]),
         }])
-        .validate()
-        .expect("Error while validating");
+        .validate();
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown aggregate type".to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Composition".to_string(),
-                            field_name: "aggregate".to_string()
-                        }
-                    ])
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "Unknown aggregate type".to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::Struct {
+                        struct_name: "Composition".to_string(),
+                        field_name: "aggregate".to_string()
+                    }
+                ])
+            }]
         );
     }
 }

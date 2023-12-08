@@ -19,8 +19,7 @@
 use crate::{
     external_models::{date_time::DateTime, normalized_string::NormalizedString, uri::Uri},
     validation::{
-        FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
-        ValidationResult,
+        FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
     },
 };
 
@@ -36,45 +35,40 @@ pub struct Commit {
 }
 
 impl Validate for Commit {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         if let Some(uid) = &self.uid {
             let context = context.extend_context_with_struct_field("Commit", "uid");
 
-            results.push(uid.validate_with_context(context)?);
+            result.merge(uid.validate_with_context(context));
         }
 
         if let Some(url) = &self.url {
             let context = context.extend_context_with_struct_field("Commit", "url");
 
-            results.push(url.validate_with_context(context)?);
+            result.merge(url.validate_with_context(context));
         }
 
         if let Some(author) = &self.author {
             let context = context.extend_context_with_struct_field("Commit", "author");
 
-            results.push(author.validate_with_context(context)?);
+            result.merge(author.validate_with_context(context));
         }
 
         if let Some(committer) = &self.committer {
             let context = context.extend_context_with_struct_field("Commit", "committer");
 
-            results.push(committer.validate_with_context(context)?);
+            result.merge(committer.validate_with_context(context));
         }
 
         if let Some(message) = &self.message {
             let context = context.extend_context_with_struct_field("Commit", "message");
 
-            results.push(message.validate_with_context(context)?);
+            result.merge(message.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -82,21 +76,16 @@ impl Validate for Commit {
 pub struct Commits(pub Vec<Commit>);
 
 impl Validate for Commits {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, commit) in self.0.iter().enumerate() {
             let commit_context =
                 context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(commit.validate_with_context(commit_context)?);
+            result.merge(commit.validate_with_context(commit_context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -107,27 +96,22 @@ pub struct Diff {
 }
 
 impl Validate for Diff {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         if let Some(text) = &self.text {
             let context = context.extend_context_with_struct_field("Diff", "text");
 
-            results.push(text.validate_with_context(context)?);
+            result.merge(text.validate_with_context(context));
         }
 
         if let Some(url) = &self.url {
             let context = context.extend_context_with_struct_field("Diff", "url");
 
-            results.push(url.validate_with_context(context)?);
+            result.merge(url.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -139,34 +123,29 @@ pub struct IdentifiableAction {
 }
 
 impl Validate for IdentifiableAction {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         if let Some(timestamp) = &self.timestamp {
             let context =
                 context.extend_context_with_struct_field("IdentifiableAction", "timestamp");
 
-            results.push(timestamp.validate_with_context(context)?);
+            result.merge(timestamp.validate_with_context(context));
         }
 
         if let Some(name) = &self.name {
             let context = context.extend_context_with_struct_field("IdentifiableAction", "name");
 
-            results.push(name.validate_with_context(context)?);
+            result.merge(name.validate_with_context(context));
         }
 
         if let Some(email) = &self.email {
             let context = context.extend_context_with_struct_field("IdentifiableAction", "email");
 
-            results.push(email.validate_with_context(context)?);
+            result.merge(email.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -181,38 +160,35 @@ pub struct Issue {
 }
 
 impl Validate for Issue {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let issue_context = context.extend_context_with_struct_field("Issue", "issue_type");
 
-        results.push(self.issue_type.validate_with_context(issue_context)?);
+        result.merge(self.issue_type.validate_with_context(issue_context));
 
         if let Some(id) = &self.id {
             let context = context.extend_context_with_struct_field("Issue", "id");
 
-            results.push(id.validate_with_context(context)?);
+            result.merge(id.validate_with_context(context));
         }
 
         if let Some(name) = &self.name {
             let context = context.extend_context_with_struct_field("Issue", "name");
 
-            results.push(name.validate_with_context(context)?);
+            result.merge(name.validate_with_context(context));
         }
 
         if let Some(description) = &self.description {
             let context = context.extend_context_with_struct_field("Issue", "description");
 
-            results.push(description.validate_with_context(context)?);
+            result.merge(description.validate_with_context(context));
         }
 
         if let Some(source) = &self.source {
             let context = context.extend_context_with_struct_field("Issue", "source");
 
-            results.push(source.validate_with_context(context)?);
+            result.merge(source.validate_with_context(context));
         }
 
         if let Some(reference) = &self.references {
@@ -224,13 +200,11 @@ impl Validate for Issue {
                     },
                     ValidationPathComponent::Array { index },
                 ]);
-                results.push(reference.validate_with_context(context)?);
+                result.merge(reference.validate_with_context(context));
             }
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -267,18 +241,15 @@ impl IssueClassification {
 }
 
 impl Validate for IssueClassification {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            IssueClassification::UnknownIssueClassification(_) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
+            IssueClassification::UnknownIssueClassification(_) => {
+                ValidationResult::failure(FailureReason {
                     message: "Unknown issue classification".to_string(),
                     context,
-                }],
-            }),
-            _ => Ok(ValidationResult::Passed),
+                })
+            }
+            _ => ValidationResult::ok(),
         }
     }
 }
@@ -291,20 +262,17 @@ pub struct Patch {
 }
 
 impl Validate for Patch {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let patch_type_context = context.extend_context_with_struct_field("Patch", "patch_type");
 
-        results.push(self.patch_type.validate_with_context(patch_type_context)?);
+        result.merge(self.patch_type.validate_with_context(patch_type_context));
 
         if let Some(diff) = &self.diff {
             let context = context.extend_context_with_struct_field("Patch", "diff");
 
-            results.push(diff.validate_with_context(context)?);
+            result.merge(diff.validate_with_context(context));
         }
 
         if let Some(resolves) = &self.resolves {
@@ -316,13 +284,11 @@ impl Validate for Patch {
                     },
                     ValidationPathComponent::Array { index },
                 ]);
-                results.push(resolve.validate_with_context(context)?);
+                result.merge(resolve.validate_with_context(context));
             }
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -330,20 +296,15 @@ impl Validate for Patch {
 pub struct Patches(pub Vec<Patch>);
 
 impl Validate for Patches {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, patch) in self.0.iter().enumerate() {
             let context = context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(patch.validate_with_context(context)?);
+            result.merge(patch.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -383,18 +344,12 @@ impl PatchClassification {
 }
 
 impl Validate for PatchClassification {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            PatchClassification::UnknownPatchClassification(_) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown patch classification".to_string(),
-                    context,
-                }],
-            }),
-            _ => Ok(ValidationResult::Passed),
+            PatchClassification::UnknownPatchClassification(_) => ValidationResult::failure(
+                FailureReason::new("Unknown patch classification", context),
+            ),
+            _ => ValidationResult::ok(),
         }
     }
 }
@@ -406,27 +361,22 @@ pub struct Source {
 }
 
 impl Validate for Source {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         if let Some(name) = &self.name {
             let context = context.extend_context_with_struct_field("Source", "name");
 
-            results.push(name.validate_with_context(context)?);
+            result.merge(name.validate_with_context(context));
         }
 
         if let Some(url) = &self.url {
             let context = context.extend_context_with_struct_field("Source", "url");
 
-            results.push(url.validate_with_context(context)?);
+            result.merge(url.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -454,10 +404,9 @@ mod test {
             }),
             message: Some(NormalizedString("no_whitespace".to_string())),
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -477,141 +426,132 @@ mod test {
             }),
             message: Some(NormalizedString("spaces and\ttabs".to_string())),
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "uid".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "url".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "email".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "email".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "message".to_string()
-                            },
-                        ])
-                    },
-                ]
-            }
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "uid".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "Uri does not conform to RFC 3986".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "url".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "DateTime does not conform to ISO 8601".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "author".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "timestamp".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "author".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "name".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "author".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "email".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "DateTime does not conform to ISO 8601".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "committer".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "timestamp".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "committer".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "name".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "committer".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "IdentifiableAction".to_string(),
+                            field_name: "email".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Commit".to_string(),
+                            field_name: "message".to_string()
+                        },
+                    ])
+                },
+            ]
         );
     }
 
@@ -639,10 +579,9 @@ mod test {
                 references: Some(vec![Uri("https://example.com".to_string())]),
             }]),
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -669,181 +608,173 @@ mod test {
                 references: Some(vec![Uri("invalid uri".to_string())]),
             }]),
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: "Unknown patch classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "patch_type".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "diff".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Diff".to_string(),
-                                field_name: "text".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "AttachedText".to_string(),
-                                field_name: "content_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "diff".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Diff".to_string(),
-                                field_name: "url".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown issue classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "issue_type".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "id".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "description".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "source".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Source".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "source".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Source".to_string(),
-                                field_name: "url".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "references".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 }
-                        ])
-                    },
-                ]
-            }
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: "Unknown patch classification".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "patch_type".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "diff".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Diff".to_string(),
+                            field_name: "text".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "AttachedText".to_string(),
+                            field_name: "content_type".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "Uri does not conform to RFC 3986".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "diff".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Diff".to_string(),
+                            field_name: "url".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "Unknown issue classification".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "issue_type".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "id".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "name".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "description".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "source".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Source".to_string(),
+                            field_name: "name".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "Uri does not conform to RFC 3986".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "source".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Source".to_string(),
+                            field_name: "url".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "Uri does not conform to RFC 3986".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Patch".to_string(),
+                            field_name: "resolves".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Issue".to_string(),
+                            field_name: "references".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 }
+                    ])
+                },
+            ]
         );
     }
 }

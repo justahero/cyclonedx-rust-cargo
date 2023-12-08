@@ -18,9 +18,7 @@
 
 use crate::{
     external_models::normalized_string::NormalizedString,
-    validation::{
-        Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
-    },
+    validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult},
 };
 
 /// Represents a name-value store that can be used to describe additional data about the components, services, or the BOM that
@@ -32,21 +30,16 @@ use crate::{
 pub struct Properties(pub Vec<Property>);
 
 impl Validate for Properties {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, property) in self.0.iter().enumerate() {
             let property_context =
                 context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(property.validate_with_context(property_context)?);
+            result.merge(property.validate_with_context(property_context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -75,19 +68,14 @@ impl Property {
 }
 
 impl Validate for Property {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let value_context = context.extend_context_with_struct_field("Property", "value");
 
-        results.push(self.value.validate_with_context(value_context)?);
+        result.merge(self.value.validate_with_context(value_context));
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -103,10 +91,9 @@ mod test {
             name: "property name".to_string(),
             value: NormalizedString("property value".to_string()),
         }])
-        .validate()
-        .expect("Error while validating");
+        .validate();
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -115,24 +102,21 @@ mod test {
             name: "property name".to_string(),
             value: NormalizedString("spaces and \ttabs".to_string()),
         }])
-        .validate()
-        .expect("Error while validating");
+        .validate();
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Property".to_string(),
-                            field_name: "value".to_string(),
-                        },
-                    ]),
-                }],
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                    .to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::Struct {
+                        struct_name: "Property".to_string(),
+                        field_name: "value".to_string(),
+                    },
+                ]),
+            }]
         );
     }
 }

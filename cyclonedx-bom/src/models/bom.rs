@@ -34,8 +34,7 @@ use crate::models::property::Properties;
 use crate::models::service::{Service, Services};
 use crate::models::vulnerability::Vulnerabilities;
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
-    ValidationResult,
+    FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
 };
 use crate::xml::{FromXmlDocument, ToXml};
 
@@ -161,18 +160,15 @@ impl Default for Bom {
 }
 
 impl Validate for Bom {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let mut bom_refs_context = BomReferencesContext::default();
 
         if let Some(serial_number) = &self.serial_number {
             let context = context.extend_context_with_struct_field("Bom", "serial_number");
 
-            results.push(serial_number.validate_with_context(context)?);
+            result.merge(serial_number.validate_with_context(context));
         }
 
         if let Some(metadata) = &self.metadata {
@@ -180,14 +176,14 @@ impl Validate for Bom {
             let component_bom_ref_context =
                 context.extend_context_with_struct_field("Metadata", "component");
 
-            results.push(metadata.validate_with_context(context)?);
+            result.merge(metadata.validate_with_context(context));
 
             if let Some(component) = &metadata.component {
                 validate_component_bom_refs(
                     component,
                     &mut bom_refs_context,
                     &component_bom_ref_context,
-                    &mut results,
+                    &mut result,
                 );
             }
         }
@@ -196,14 +192,14 @@ impl Validate for Bom {
             let context = context.extend_context_with_struct_field("Bom", "components");
             let component_bom_ref_context = context.clone();
 
-            results.push(components.validate_with_context(context)?);
+            result.merge(components.validate_with_context(context));
 
             // record the component references
             validate_components(
                 components,
                 &mut bom_refs_context,
                 &component_bom_ref_context,
-                &mut results,
+                &mut result,
             );
         }
 
@@ -211,21 +207,21 @@ impl Validate for Bom {
             let context = context.extend_context_with_struct_field("Bom", "services");
             let service_bom_ref_context = context.clone();
 
-            results.push(services.validate_with_context(context)?);
+            result.merge(services.validate_with_context(context));
 
             // record the service references
             validate_services(
                 services,
                 &mut bom_refs_context,
                 &service_bom_ref_context,
-                &mut results,
+                &mut result,
             );
         }
 
         if let Some(external_references) = &self.external_references {
             let context = context.extend_context_with_struct_field("Bom", "external_references");
 
-            results.push(external_references.validate_with_context(context)?);
+            result.merge(external_references.validate_with_context(context));
         }
 
         if let Some(dependencies) = &self.dependencies {
@@ -239,12 +235,10 @@ impl Validate for Bom {
                     let dependency_context =
                         context.extend_context_with_struct_field("Dependency", "dependency_ref");
 
-                    results.push(ValidationResult::Failed {
-                        reasons: vec![FailureReason {
-                            message: "Dependency reference does not exist in the BOM".to_string(),
-                            context: dependency_context,
-                        }],
-                    })
+                    result.add(FailureReason {
+                        message: "Dependency reference does not exist in the BOM".to_string(),
+                        context: dependency_context,
+                    });
                 }
 
                 for (sub_dependency_index, sub_dependency) in
@@ -261,13 +255,10 @@ impl Validate for Bom {
                             },
                         ]);
 
-                        results.push(ValidationResult::Failed {
-                            reasons: vec![FailureReason {
-                                message: "Dependency reference does not exist in the BOM"
-                                    .to_string(),
-                                context,
-                            }],
-                        })
+                        result.add(FailureReason {
+                            message: "Dependency reference does not exist in the BOM".to_string(),
+                            context,
+                        });
                     }
                 }
             }
@@ -277,7 +268,7 @@ impl Validate for Bom {
             let context = context.extend_context_with_struct_field("Bom", "compositions");
             let compositions_context = context.clone();
 
-            results.push(compositions.validate_with_context(context)?);
+            result.merge(compositions.validate_with_context(context));
 
             for (composition_index, composition) in compositions.0.iter().enumerate() {
                 let compositions_context =
@@ -295,12 +286,10 @@ impl Validate for Bom {
                                     index: assembly_index,
                                 },
                             ]);
-                            results.push(ValidationResult::Failed {
-                                reasons: vec![FailureReason {
-                                    message: "Composition reference does not exist in the BOM"
-                                        .to_string(),
-                                    context: compositions_context,
-                                }],
+                            result.add(FailureReason {
+                                message: "Composition reference does not exist in the BOM"
+                                    .to_string(),
+                                context: compositions_context,
                             });
                         }
                     }
@@ -318,12 +307,10 @@ impl Validate for Bom {
                                     index: dependency_index,
                                 },
                             ]);
-                            results.push(ValidationResult::Failed {
-                                reasons: vec![FailureReason {
-                                    message: "Composition reference does not exist in the BOM"
-                                        .to_string(),
-                                    context: compositions_context,
-                                }],
+                            result.add(FailureReason {
+                                message: "Composition reference does not exist in the BOM"
+                                    .to_string(),
+                                context: compositions_context,
                             });
                         }
                     }
@@ -334,17 +321,15 @@ impl Validate for Bom {
         if let Some(properties) = &self.properties {
             let context = context.extend_context_with_struct_field("Bom", "properties");
 
-            results.push(properties.validate_with_context(context)?);
+            result.merge(properties.validate_with_context(context));
         }
 
         if let Some(vulnerabilities) = &self.vulnerabilities {
             let context = context.extend_context_with_struct_field("Bom", "vulnerabilities");
-            results.push(vulnerabilities.validate_with_context(context)?);
+            result.merge(vulnerabilities.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -372,16 +357,14 @@ fn validate_component_bom_refs(
     component: &Component,
     bom_refs: &mut BomReferencesContext,
     context: &ValidationContext,
-    results: &mut Vec<ValidationResult>,
+    result: &mut ValidationResult,
 ) {
     if let Some(bom_ref) = &component.bom_ref {
         if bom_refs.contains(bom_ref) {
             let context = context.extend_context_with_struct_field("Component", "bom_ref");
-            results.push(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: format!(r#"Bom ref "{bom_ref}" is not unique"#),
-                    context,
-                }],
+            result.add(FailureReason {
+                message: format!(r#"Bom ref "{bom_ref}" is not unique"#),
+                context,
             });
         }
         bom_refs.add_component_bom_ref(bom_ref);
@@ -389,7 +372,7 @@ fn validate_component_bom_refs(
 
     if let Some(components) = &component.components {
         let context = context.extend_context_with_struct_field("Component", "components");
-        validate_components(components, bom_refs, &context, results);
+        validate_components(components, bom_refs, &context, result);
     }
 }
 
@@ -397,7 +380,7 @@ fn validate_components(
     components: &Components,
     bom_refs: &mut BomReferencesContext,
     context: &ValidationContext,
-    results: &mut Vec<ValidationResult>,
+    result: &mut ValidationResult,
 ) {
     // record the component references
     for (component_index, component) in components.0.iter().enumerate() {
@@ -405,7 +388,7 @@ fn validate_components(
             index: component_index,
         }]);
 
-        validate_component_bom_refs(component, bom_refs, &context, results);
+        validate_component_bom_refs(component, bom_refs, &context, result);
     }
 }
 
@@ -413,16 +396,14 @@ fn validate_service_bom_refs(
     service: &Service,
     bom_refs: &mut BomReferencesContext,
     context: &ValidationContext,
-    results: &mut Vec<ValidationResult>,
+    result: &mut ValidationResult,
 ) {
     if let Some(bom_ref) = &service.bom_ref {
         if bom_refs.contains(bom_ref) {
             let context = context.extend_context_with_struct_field("Service", "bom_ref");
-            results.push(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: format!(r#"Bom ref "{bom_ref}" is not unique"#),
-                    context,
-                }],
+            result.add(FailureReason {
+                message: format!(r#"Bom ref "{bom_ref}" is not unique"#),
+                context,
             });
         }
         bom_refs.add_service_bom_ref(bom_ref);
@@ -430,7 +411,7 @@ fn validate_service_bom_refs(
 
     if let Some(services) = &service.services {
         let context = context.extend_context_with_struct_field("Service", "services");
-        validate_services(services, bom_refs, &context, results);
+        validate_services(services, bom_refs, &context, result);
     }
 }
 
@@ -438,7 +419,7 @@ fn validate_services(
     services: &Services,
     bom_refs: &mut BomReferencesContext,
     context: &ValidationContext,
-    results: &mut Vec<ValidationResult>,
+    result: &mut ValidationResult,
 ) {
     // record the service references
     for (service_index, service) in services.0.iter().enumerate() {
@@ -446,7 +427,7 @@ fn validate_services(
             index: service_index,
         }]);
 
-        validate_service_bom_refs(service, bom_refs, &context, results);
+        validate_service_bom_refs(service, bom_refs, &context, result);
     }
 }
 
@@ -456,8 +437,8 @@ pub struct UrnUuid(pub(crate) String);
 impl UrnUuid {
     pub fn new(value: String) -> Result<Self, UrnUuidError> {
         match matches_urn_uuid_regex(&value) {
-            Ok(true) => Ok(Self(value)),
-            Ok(false) | Err(_) => Err(UrnUuidError::InvalidUrnUuid(
+            true => Ok(Self(value)),
+            false => Err(UrnUuidError::InvalidUrnUuid(
                 "UrnUuid does not match regular expression".to_string(),
             )),
         }
@@ -481,19 +462,13 @@ impl From<uuid::Uuid> for UrnUuid {
 }
 
 impl Validate for UrnUuid {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match matches_urn_uuid_regex(&self.0) {
-            Ok(true) => Ok(ValidationResult::Passed),
-            Ok(false) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "UrnUuid does not match regular expression".to_string(),
-                    context,
-                }],
+            true => ValidationResult::ok(),
+            false => ValidationResult::failure(FailureReason {
+                message: "UrnUuid does not match regular expression".to_string(),
+                context,
             }),
-            Err(e) => Err(e.into()),
         }
     }
 }
@@ -503,15 +478,13 @@ pub enum UrnUuidError {
     InvalidUrnUuid(String),
 }
 
-fn matches_urn_uuid_regex(value: &str) -> Result<bool, regex::Error> {
-    static UUID_REGEX: Lazy<Result<Regex, regex::Error>> = Lazy::new(|| {
+fn matches_urn_uuid_regex(value: &str) -> bool {
+    static UUID_REGEX: Lazy<Regex> = Lazy::new(|| {
         Regex::new(r"^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+            .expect("Failed to create Regex")
     });
 
-    UUID_REGEX
-        .as_ref()
-        .map(|regex| regex.is_match(value))
-        .map_err(Clone::clone)
+    UUID_REGEX.is_match(value)
 }
 
 #[cfg(test)]
@@ -548,11 +521,9 @@ mod test {
             vulnerabilities: None,
         };
 
-        let actual = bom
-            .validate_with_context(ValidationContext::default())
-            .expect("Failed to validate bom");
+        let actual = bom.validate_with_context(ValidationContext::default());
 
-        assert_eq!(actual, ValidationResult::Passed);
+        assert!(actual.passed());
     }
 
     #[test]
@@ -573,43 +544,41 @@ mod test {
             vulnerabilities: None,
         };
 
-        let actual = bom.validate().expect("Failed to validate bom");
+        let actual = bom.validate();
 
         assert_eq!(
-            actual,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: "Dependency reference does not exist in the BOM".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "dependencies".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Dependency".to_string(),
-                                field_name: "dependency_ref".to_string(),
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Dependency reference does not exist in the BOM".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "dependencies".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Dependency".to_string(),
-                                field_name: "dependencies".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                        ])
-                    },
-                ]
-            }
+            actual.reasons(),
+            [
+                FailureReason {
+                    message: "Dependency reference does not exist in the BOM".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "dependencies".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Dependency".to_string(),
+                            field_name: "dependency_ref".to_string(),
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "Dependency reference does not exist in the BOM".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "dependencies".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Dependency".to_string(),
+                            field_name: "dependencies".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                    ])
+                },
+            ]
         );
     }
 
@@ -632,44 +601,42 @@ mod test {
             vulnerabilities: None,
         };
 
-        let actual = bom.validate().expect("Failed to validate bom");
+        let actual = bom.validate();
 
         assert_eq!(
-            actual,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: "Composition reference does not exist in the BOM".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "compositions".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Composition".to_string(),
-                                field_name: "assemblies".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Composition reference does not exist in the BOM".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "compositions".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Composition".to_string(),
-                                field_name: "dependencies".to_string(),
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                        ])
-                    },
-                ]
-            }
+            actual.reasons(),
+            [
+                FailureReason {
+                    message: "Composition reference does not exist in the BOM".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "compositions".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Composition".to_string(),
+                            field_name: "assemblies".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                    ])
+                },
+                FailureReason {
+                    message: "Composition reference does not exist in the BOM".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "compositions".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Composition".to_string(),
+                            field_name: "dependencies".to_string(),
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                    ])
+                },
+            ]
         );
     }
 
@@ -772,110 +739,104 @@ mod test {
             }])),
         };
 
-        let actual = bom
-            .validate_with_context(ValidationContext::default())
-            .expect("Failed to validate bom");
+        let actual = bom.validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            actual,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: "UrnUuid does not match regular expression".to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
+            actual.reasons(),
+            [
+                FailureReason {
+                    message: "UrnUuid does not match regular expression".to_string(),
+                    context: ValidationContext(vec![ValidationPathComponent::Struct {
+                        struct_name: "Bom".to_string(),
+                        field_name: "serial_number".to_string()
+                    }])
+                },
+                FailureReason {
+                    message: "DateTime does not conform to ISO 8601".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
                             struct_name: "Bom".to_string(),
-                            field_name: "serial_number".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "metadata".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "component_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown external reference type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "external_references".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "ExternalReference".to_string(),
-                                field_name: "external_reference_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown aggregate type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "compositions".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Composition".to_string(),
-                                field_name: "aggregate".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "properties".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Property".to_string(),
-                                field_name: "value".to_string()
-                            }
-                        ])
-                    },
-                ]
-            }
+                            field_name: "metadata".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Metadata".to_string(),
+                            field_name: "timestamp".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "Unknown classification".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "components".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Component".to_string(),
+                            field_name: "component_type".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "services".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Service".to_string(),
+                            field_name: "name".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "Unknown external reference type".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "external_references".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "ExternalReference".to_string(),
+                            field_name: "external_reference_type".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "Unknown aggregate type".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "compositions".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Composition".to_string(),
+                            field_name: "aggregate".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "properties".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Property".to_string(),
+                            field_name: "value".to_string()
+                        }
+                    ])
+                },
+            ]
         )
     }
 
@@ -931,135 +892,128 @@ mod test {
             properties: None,
             vulnerabilities: None,
         }
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: r#"Bom ref "metadata-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "component-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "subcomponent-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 3 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "service-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "subservice-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "component-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 3 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                ]
-            },
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: r#"Bom ref "metadata-component" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "components".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Component".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: r#"Bom ref "component-component" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "components".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 2 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Component".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: r#"Bom ref "subcomponent-component" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "components".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 3 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Component".to_string(),
+                            field_name: "components".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Component".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: r#"Bom ref "service-service" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "services".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 1 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Service".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: r#"Bom ref "subservice-service" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "services".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 2 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Service".to_string(),
+                            field_name: "services".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 0 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Service".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: r#"Bom ref "component-service" is not unique"#.to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Struct {
+                            struct_name: "Bom".to_string(),
+                            field_name: "services".to_string()
+                        },
+                        ValidationPathComponent::Array { index: 3 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Service".to_string(),
+                            field_name: "bom_ref".to_string()
+                        },
+                    ])
+                },
+            ]
         );
     }
 
     #[test]
     fn valid_uuids_should_pass_validation() {
         let validation_result = UrnUuid(format!("urn:uuid:{}", uuid::Uuid::new_v4()))
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+            .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
     fn invalid_uuids_should_fail_validation() {
-        let validation_result = UrnUuid("invalid uuid".to_string())
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+        let validation_result =
+            UrnUuid("invalid uuid".to_string()).validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "UrnUuid does not match regular expression".to_string(),
-                    context: ValidationContext::default()
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "UrnUuid does not match regular expression".to_string(),
+                context: ValidationContext::default()
+            }]
         );
     }
 }

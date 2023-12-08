@@ -48,7 +48,6 @@ use cyclonedx_bom::models::metadata::MetadataError;
 use cyclonedx_bom::models::organization::OrganizationalContact;
 use cyclonedx_bom::models::tool::{Tool, Tools};
 use cyclonedx_bom::validation::Validate;
-use cyclonedx_bom::validation::ValidationResult;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -99,9 +98,12 @@ impl SbomGenerator {
             let bom = generator.create_bom(member, &dependencies, &pruned_resolve)?;
 
             if cfg!(debug_assertions) {
-                let result = bom.validate().unwrap();
-                if let ValidationResult::Failed { reasons } = result {
-                    panic!("The generated SBOM failed validation: {:?}", &reasons);
+                let result = bom.validate();
+                if !result.passed() {
+                    panic!(
+                        "The generated SBOM failed validation: {:?}",
+                        &result.reasons()
+                    );
                 }
             }
 

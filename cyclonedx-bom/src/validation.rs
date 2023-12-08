@@ -17,14 +17,11 @@
  */
 
 pub trait Validate {
-    fn validate(&self) -> Result<ValidationResult, ValidationError> {
+    fn validate(&self) -> ValidationResult {
         self.validate_with_context(ValidationContext::default())
     }
 
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError>;
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult;
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -66,37 +63,49 @@ pub enum ValidationPathComponent {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum ValidationResult {
-    Passed,
-    Failed { reasons: Vec<FailureReason> },
+pub struct ValidationResult {
+    failures: Vec<FailureReason>,
 }
 
 impl ValidationResult {
-    pub fn merge(self, other: Self) -> Self {
-        match (self, other) {
-            (Self::Passed, Self::Passed) => Self::Passed,
-            (Self::Passed, Self::Failed { reasons }) => Self::Failed { reasons },
-            (Self::Failed { reasons }, Self::Passed) => Self::Failed { reasons },
-            (
-                Self::Failed {
-                    reasons: mut left_reasons,
-                },
-                Self::Failed {
-                    reasons: mut right_reasons,
-                },
-            ) => {
-                left_reasons.append(&mut right_reasons);
-                Self::Failed {
-                    reasons: left_reasons,
-                }
-            }
+    pub fn ok() -> Self {
+        Self {
+            failures: Vec::new(),
         }
+    }
+
+    /// Constructor method to create a [`Self`] with a single failure.
+    /// TODO: pass in `message: &str, context: ...` instead.
+    pub fn failure(failure: FailureReason) -> Self {
+        Self {
+            failures: vec![failure],
+        }
+    }
+
+    /// Returns `true` when there are no errors reported, `false` otherwise
+    pub fn passed(&self) -> bool {
+        self.failures.is_empty()
+    }
+
+    /// Returns the list failure reasons
+    pub fn reasons(&self) -> &[FailureReason] {
+        &self.failures
+    }
+
+    /// Adds a single [`FailureReason`]
+    pub fn add(&mut self, failure: FailureReason) {
+        self.failures.push(failure)
+    }
+
+    /// Appends the list of failure reasons from another [`ValidationResult`]
+    pub fn merge(&mut self, mut other: ValidationResult) {
+        self.failures.append(&mut other.failures);
     }
 }
 
 impl Default for ValidationResult {
     fn default() -> Self {
-        Self::Passed
+        Self::ok()
     }
 }
 
@@ -105,8 +114,12 @@ pub struct FailureReason {
     pub message: String,
     pub context: ValidationContext,
 }
-#[derive(Debug, PartialEq, thiserror::Error)]
-pub enum ValidationError {
-    #[error("Failed to compile regular expression: {0}")]
-    InvalidRegularExpressionError(#[from] regex::Error),
+
+impl FailureReason {
+    pub fn new(message: &str, context: ValidationContext) -> Self {
+        Self {
+            message: message.to_string(),
+            context,
+        }
+    }
 }

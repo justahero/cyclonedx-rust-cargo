@@ -25,9 +25,7 @@ use crate::external_models::{
     uri::Uri,
 };
 use crate::models::attached_text::AttachedText;
-use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
-};
+use crate::validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult};
 
 /// Represents whether a license is a named license or an SPDX license expression
 ///
@@ -45,11 +43,8 @@ impl LicenseChoice {
 }
 
 impl Validate for LicenseChoice {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         match self {
             LicenseChoice::License(license) => {
@@ -57,24 +52,17 @@ impl Validate for LicenseChoice {
                     context.extend_context(vec![ValidationPathComponent::EnumVariant {
                         variant_name: "License".to_string(),
                     }]);
-                results.push(license.validate_with_context(license_context)?);
-
-                Ok(results
-                    .into_iter()
-                    .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+                result.merge(license.validate_with_context(license_context));
             }
             LicenseChoice::Expression(expression) => {
                 let expression_context =
                     context.extend_context(vec![ValidationPathComponent::EnumVariant {
                         variant_name: "Expression".to_string(),
                     }]);
-                results.push(expression.validate_with_context(expression_context)?);
-
-                Ok(results
-                    .into_iter()
-                    .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+                result.merge(expression.validate_with_context(expression_context));
             }
         }
+        result
     }
 }
 
@@ -121,35 +109,30 @@ impl License {
 }
 
 impl Validate for License {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         let license_identifier_context =
             context.extend_context_with_struct_field("License", "license_identifier");
 
-        results.push(
+        result.merge(
             self.license_identifier
-                .validate_with_context(license_identifier_context)?,
+                .validate_with_context(license_identifier_context),
         );
 
         if let Some(text) = &self.text {
             let context = context.extend_context_with_struct_field("License", "text");
 
-            results.push(text.validate_with_context(context)?);
+            result.merge(text.validate_with_context(context));
         }
 
         if let Some(url) = &self.url {
             let context = context.extend_context_with_struct_field("License", "url");
 
-            results.push(url.validate_with_context(context)?);
+            result.merge(url.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -157,21 +140,16 @@ impl Validate for License {
 pub struct Licenses(pub Vec<LicenseChoice>);
 
 impl Validate for Licenses {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, license_choice) in self.0.iter().enumerate() {
             let license_choice_context =
                 context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(license_choice.validate_with_context(license_choice_context)?);
+            result.merge(license_choice.validate_with_context(license_choice_context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -184,26 +162,25 @@ pub enum LicenseIdentifier {
 }
 
 impl Validate for LicenseIdentifier {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
         match self {
             LicenseIdentifier::Name(name) => {
                 let name_context =
                     context.extend_context(vec![ValidationPathComponent::EnumVariant {
                         variant_name: "Name".to_string(),
                     }]);
-                Ok(name.validate_with_context(name_context)?)
+                result.merge(name.validate_with_context(name_context));
             }
             LicenseIdentifier::SpdxId(id) => {
                 let spdxid_context =
                     context.extend_context(vec![ValidationPathComponent::EnumVariant {
                         variant_name: "SpdxId".to_string(),
                     }]);
-                Ok(id.validate_with_context(spdxid_context)?)
+                result.merge(id.validate_with_context(spdxid_context));
             }
         }
+        result
     }
 }
 
@@ -219,10 +196,9 @@ mod test {
         let validation_result = Licenses(vec![LicenseChoice::Expression(SpdxExpression(
             "MIT OR Apache-2.0".to_string(),
         ))])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -234,30 +210,27 @@ mod test {
             text: None,
             url: None,
         })])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::EnumVariant {
-                            variant_name: "License".to_string()
-                        },
-                        ValidationPathComponent::Struct {
-                            struct_name: "License".to_string(),
-                            field_name: "license_identifier".to_string(),
-                        },
-                        ValidationPathComponent::EnumVariant {
-                            variant_name: "Name".to_string()
-                        },
-                    ])
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                    .to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::EnumVariant {
+                        variant_name: "License".to_string()
+                    },
+                    ValidationPathComponent::Struct {
+                        struct_name: "License".to_string(),
+                        field_name: "license_identifier".to_string(),
+                    },
+                    ValidationPathComponent::EnumVariant {
+                        variant_name: "Name".to_string()
+                    },
+                ])
+            }]
         );
     }
 
@@ -268,29 +241,26 @@ mod test {
             text: None,
             url: None,
         })])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX identifier is not valid".to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::EnumVariant {
-                            variant_name: "License".to_string()
-                        },
-                        ValidationPathComponent::Struct {
-                            struct_name: "License".to_string(),
-                            field_name: "license_identifier".to_string(),
-                        },
-                        ValidationPathComponent::EnumVariant {
-                            variant_name: "SpdxId".to_string()
-                        },
-                    ])
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "SPDX identifier is not valid".to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::EnumVariant {
+                        variant_name: "License".to_string()
+                    },
+                    ValidationPathComponent::Struct {
+                        struct_name: "License".to_string(),
+                        field_name: "license_identifier".to_string(),
+                    },
+                    ValidationPathComponent::EnumVariant {
+                        variant_name: "SpdxId".to_string()
+                    },
+                ])
+            }]
         );
     }
 
@@ -299,22 +269,19 @@ mod test {
         let validation_result = Licenses(vec![LicenseChoice::Expression(SpdxExpression(
             "MIT OR".to_string(),
         ))])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX expression is not valid".to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::EnumVariant {
-                            variant_name: "Expression".to_string()
-                        }
-                    ])
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "SPDX expression is not valid".to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::EnumVariant {
+                        variant_name: "Expression".to_string()
+                    }
+                ])
+            }]
         );
     }
 
@@ -341,49 +308,45 @@ mod test {
                 url: None,
             }),
         ])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "License".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "License".to_string(),
-                                field_name: "license_identifier".to_string(),
-                            },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "Name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "SPDX identifier is not valid".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "License".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "License".to_string(),
-                                field_name: "license_identifier".to_string(),
-                            },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "SpdxId".to_string()
-                            },
-                        ])
-                    }
-                ]
-            }
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 1 },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "License".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "License".to_string(),
+                            field_name: "license_identifier".to_string(),
+                        },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "Name".to_string()
+                        },
+                    ])
+                },
+                FailureReason {
+                    message: "SPDX identifier is not valid".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 2 },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "License".to_string()
+                        },
+                        ValidationPathComponent::Struct {
+                            struct_name: "License".to_string(),
+                            field_name: "license_identifier".to_string(),
+                        },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "SpdxId".to_string()
+                        },
+                    ])
+                }
+            ]
         );
     }
 
@@ -394,33 +357,30 @@ mod test {
             LicenseChoice::Expression(SpdxExpression("MIT OR".to_string())),
             LicenseChoice::Expression(SpdxExpression("MIT OR".to_string())),
         ])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message: "SPDX expression is not valid".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "Expression".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "SPDX expression is not valid".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "Expression".to_string()
-                            }
-                        ])
-                    }
-                ]
-            }
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: "SPDX expression is not valid".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 1 },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "Expression".to_string()
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "SPDX expression is not valid".to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 2 },
+                        ValidationPathComponent::EnumVariant {
+                            variant_name: "Expression".to_string()
+                        }
+                    ])
+                }
+            ]
         );
     }
 }

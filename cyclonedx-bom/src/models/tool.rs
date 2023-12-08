@@ -18,9 +18,7 @@
 
 use crate::external_models::normalized_string::NormalizedString;
 use crate::models::hash::Hashes;
-use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
-};
+use crate::validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult};
 
 /// Represents the tool used to create the BOM
 ///
@@ -51,39 +49,34 @@ impl Tool {
 }
 
 impl Validate for Tool {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         if let Some(vendor) = &self.vendor {
             let context = context.extend_context_with_struct_field("Tool", "vendor");
 
-            results.push(vendor.validate_with_context(context)?);
+            result.merge(vendor.validate_with_context(context));
         }
 
         if let Some(name) = &self.name {
             let context = context.extend_context_with_struct_field("Tool", "name");
 
-            results.push(name.validate_with_context(context)?);
+            result.merge(name.validate_with_context(context));
         }
 
         if let Some(version) = &self.version {
             let context = context.extend_context_with_struct_field("Tool", "version");
 
-            results.push(version.validate_with_context(context)?);
+            result.merge(version.validate_with_context(context));
         }
 
         if let Some(hashes) = &self.hashes {
             let context = context.extend_context_with_struct_field("Tool", "hashes");
 
-            results.push(hashes.validate_with_context(context)?);
+            result.merge(hashes.validate_with_context(context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -91,21 +84,16 @@ impl Validate for Tool {
 pub struct Tools(pub Vec<Tool>);
 
 impl Validate for Tools {
-    fn validate_with_context(
-        &self,
-        context: ValidationContext,
-    ) -> Result<ValidationResult, ValidationError> {
-        let mut results: Vec<ValidationResult> = vec![];
+    fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
+        let mut result = ValidationResult::default();
 
         for (index, tool) in self.0.iter().enumerate() {
             let tool_context =
                 context.extend_context(vec![ValidationPathComponent::Array { index }]);
-            results.push(tool.validate_with_context(tool_context)?);
+            result.merge(tool.validate_with_context(tool_context));
         }
 
-        Ok(results
-            .into_iter()
-            .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
+        result
     }
 }
 
@@ -124,10 +112,9 @@ mod test {
             version: None,
             hashes: None,
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
@@ -138,24 +125,21 @@ mod test {
             version: None,
             hashes: None,
         }])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Tool".to_string(),
-                            field_name: "vendor".to_string(),
-                        }
-                    ])
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                    .to_string(),
+                context: ValidationContext(vec![
+                    ValidationPathComponent::Array { index: 0 },
+                    ValidationPathComponent::Struct {
+                        struct_name: "Tool".to_string(),
+                        field_name: "vendor".to_string(),
+                    }
+                ])
+            }]
         );
     }
 
@@ -181,39 +165,34 @@ mod test {
                 hashes: None,
             },
         ])
-        .validate_with_context(ValidationContext::default())
-        .expect("Error while validating");
+        .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Tool".to_string(),
-                                field_name: "vendor".to_string(),
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Tool".to_string(),
-                                field_name: "name".to_string(),
-                            }
-                        ])
-                    }
-                ]
-            }
+            validation_result.reasons(),
+            [
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 1 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Tool".to_string(),
+                            field_name: "vendor".to_string(),
+                        }
+                    ])
+                },
+                FailureReason {
+                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
+                        .to_string(),
+                    context: ValidationContext(vec![
+                        ValidationPathComponent::Array { index: 2 },
+                        ValidationPathComponent::Struct {
+                            struct_name: "Tool".to_string(),
+                            field_name: "name".to_string(),
+                        }
+                    ])
+                }
+            ]
         );
     }
 }

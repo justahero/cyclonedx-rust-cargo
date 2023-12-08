@@ -84,14 +84,12 @@ impl Validate for SpdxIdentifier {
     fn validate_with_context(
         &self,
         context: crate::validation::ValidationContext,
-    ) -> Result<ValidationResult, crate::validation::ValidationError> {
+    ) -> ValidationResult {
         match Self::try_from(self.0.clone()) {
-            Ok(_) => Ok(ValidationResult::Passed),
-            Err(_) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX identifier is not valid".to_string(),
-                    context,
-                }],
+            Ok(_) => ValidationResult::ok(),
+            Err(_) => ValidationResult::failure(FailureReason {
+                message: "SPDX identifier is not valid".to_string(),
+                context,
             }),
         }
     }
@@ -184,14 +182,12 @@ impl Validate for SpdxExpression {
     fn validate_with_context(
         &self,
         context: crate::validation::ValidationContext,
-    ) -> Result<crate::validation::ValidationResult, crate::validation::ValidationError> {
+    ) -> ValidationResult {
         match SpdxExpression::try_from(self.0.clone()) {
-            Ok(_) => Ok(ValidationResult::Passed),
-            Err(_) => Ok(ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX expression is not valid".to_string(),
-                    context,
-                }],
+            Ok(_) => ValidationResult::ok(),
+            Err(_) => ValidationResult::failure(FailureReason {
+                message: "SPDX expression is not valid".to_string(),
+                context,
             }),
         }
     }
@@ -208,7 +204,7 @@ pub enum SpdxExpressionError {
 
 #[cfg(test)]
 mod test {
-    use crate::validation::{FailureReason, ValidationContext, ValidationResult};
+    use crate::validation::{FailureReason, ValidationContext};
 
     use super::*;
     use pretty_assertions::assert_eq;
@@ -257,27 +253,23 @@ mod test {
 
     #[test]
     fn valid_spdx_identifiers_should_pass_validation() {
-        let validation_result = SpdxIdentifier("MIT".to_string())
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+        let validation_result =
+            SpdxIdentifier("MIT".to_string()).validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
     fn invalid_spdx_identifiers_should_fail_validation() {
         let validation_result = SpdxIdentifier("MIT OR Apache-2.0".to_string())
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+            .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX identifier is not valid".to_string(),
-                    context: ValidationContext::default()
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "SPDX identifier is not valid".to_string(),
+                context: ValidationContext::default()
+            }]
         );
     }
 
@@ -308,26 +300,22 @@ mod test {
     #[test]
     fn valid_spdx_expressions_should_pass_validation() {
         let validation_result = SpdxExpression("MIT OR Apache-2.0".to_string())
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+            .validate_with_context(ValidationContext::default());
 
-        assert_eq!(validation_result, ValidationResult::Passed);
+        assert!(validation_result.passed());
     }
 
     #[test]
     fn invalid_spdx_expressions_should_fail_validation() {
         let validation_result = SpdxExpression("not a real license".to_string())
-            .validate_with_context(ValidationContext::default())
-            .expect("Error while validating");
+            .validate_with_context(ValidationContext::default());
 
         assert_eq!(
-            validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "SPDX expression is not valid".to_string(),
-                    context: ValidationContext::default()
-                }]
-            }
+            validation_result.reasons(),
+            [FailureReason {
+                message: "SPDX expression is not valid".to_string(),
+                context: ValidationContext::default()
+            }]
         );
     }
 }
