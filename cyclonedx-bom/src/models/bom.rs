@@ -554,7 +554,7 @@ mod test {
             service::Service,
             vulnerability::Vulnerability,
         },
-        validation::{FailureReason, ValidationPathComponent},
+        validation::FailureReason,
     };
 
     use super::*;
@@ -796,100 +796,51 @@ mod test {
             actual,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message: "UrnUuid does not match regular expression".to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "Bom".to_string(),
-                            field_name: "serial_number".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "metadata".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "component_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown external reference type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "external_references".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "ExternalReference".to_string(),
-                                field_name: "external_reference_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown aggregate type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "compositions".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Composition".to_string(),
-                                field_name: "aggregate".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "properties".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Property".to_string(),
-                                field_name: "value".to_string()
-                            }
-                        ])
-                    },
+                    FailureReason::new(
+                        "UrnUuid does not match regular expression",
+                        ValidationContext::new().with_struct("Bom", "serial_number")
+                    ),
+                    FailureReason::new(
+                        "DateTime does not conform to ISO 8601",
+                        ValidationContext::new()
+                            .with_struct("Bom", "metadata")
+                            .with_struct("Metadata", "timestamp")
+                    ),
+                    FailureReason::new(
+                        "Unknown classification",
+                        ValidationContext::new()
+                            .with_struct("Bom", "components")
+                            .with_index(0)
+                            .with_struct("Component", "component_type")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Bom", "services")
+                            .with_index(0)
+                            .with_struct("Service", "name")
+                    ),
+                    FailureReason::new(
+                        "Unknown external reference type",
+                        ValidationContext::new()
+                            .with_struct("Bom", "external_references")
+                            .with_index(0)
+                            .with_struct("ExternalReference", "external_reference_type")
+                    ),
+                    FailureReason::new(
+                        "Unknown aggregate type",
+                        ValidationContext::new()
+                            .with_struct("Bom", "compositions")
+                            .with_index(0)
+                            .with_struct("Composition", "aggregate")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Bom", "properties")
+                            .with_index(0)
+                            .with_struct("Property", "value")
+                    ),
                 ]
             }
         )
@@ -954,100 +905,52 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message: r#"Bom ref "metadata-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "component-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "subcomponent-component" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 3 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "components".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "service-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "subservice-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: r#"Bom ref "component-service" is not unique"#.to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Bom".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 3 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "bom_ref".to_string()
-                            },
-                        ])
-                    },
+                    FailureReason::new(
+                        r#"Bom ref "metadata-component" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "components")
+                            .with_index(0)
+                            .with_struct("Component", "bom_ref")
+                    ),
+                    FailureReason::new(
+                        r#"Bom ref "component-component" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "components")
+                            .with_index(2)
+                            .with_struct("Component", "bom_ref")
+                    ),
+                    FailureReason::new(
+                        r#"Bom ref "subcomponent-component" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "components")
+                            .with_index(3)
+                            .with_struct("Component", "components")
+                            .with_index(0)
+                            .with_struct("Component", "bom_ref")
+                    ),
+                    FailureReason::new(
+                        r#"Bom ref "service-service" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "services")
+                            .with_index(1)
+                            .with_struct("Service", "bom_ref")
+                    ),
+                    FailureReason::new(
+                        r#"Bom ref "subservice-service" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "services")
+                            .with_index(2)
+                            .with_struct("Service", "services")
+                            .with_index(0)
+                            .with_struct("Service", "bom_ref")
+                    ),
+                    FailureReason::new(
+                        r#"Bom ref "component-service" is not unique"#,
+                        ValidationContext::new()
+                            .with_struct("Bom", "services")
+                            .with_index(3)
+                            .with_struct("Service", "bom_ref")
+                    ),
                 ]
             },
         );

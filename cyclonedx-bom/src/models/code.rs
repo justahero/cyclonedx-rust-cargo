@@ -18,9 +18,7 @@
 
 use crate::{
     external_models::{date_time::DateTime, normalized_string::NormalizedString, uri::Uri},
-    validation::{
-        FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
-    },
+    validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult},
 };
 
 use super::attached_text::AttachedText;
@@ -252,12 +250,9 @@ impl IssueClassification {
 impl Validate for IssueClassification {
     fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            IssueClassification::UnknownIssueClassification(_) => ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown issue classification".to_string(),
-                    context,
-                }],
-            },
+            IssueClassification::UnknownIssueClassification(_) => {
+                ValidationResult::failure("Unknown issue classification", context)
+            }
             _ => ValidationResult::Passed,
         }
     }
@@ -359,12 +354,9 @@ impl PatchClassification {
 impl Validate for PatchClassification {
     fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            PatchClassification::UnknownPatchClassification(_) => ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown patch classification".to_string(),
-                    context,
-                }],
-            },
+            PatchClassification::UnknownPatchClassification(_) => {
+                ValidationResult::failure("Unknown patch classification", context)
+            }
             _ => ValidationResult::Passed,
         }
     }
@@ -450,132 +442,66 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "uid".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "url".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "author".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "email".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "timestamp".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "committer".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "IdentifiableAction".to_string(),
-                                field_name: "email".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Commit".to_string(),
-                                field_name: "message".to_string()
-                            },
-                        ])
-                    },
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "uid")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "url")
+                    ),
+                    FailureReason::new(
+                        "DateTime does not conform to ISO 8601",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "author")
+                            .with_struct("IdentifiableAction", "timestamp")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "author")
+                            .with_struct("IdentifiableAction", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "author")
+                            .with_struct("IdentifiableAction", "email")
+                    ),
+                    FailureReason::new(
+                        "DateTime does not conform to ISO 8601",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "committer")
+                            .with_struct("IdentifiableAction", "timestamp")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "committer")
+                            .with_struct("IdentifiableAction", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "committer")
+                            .with_struct("IdentifiableAction", "email")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Commit", "message")
+                    ),
                 ]
             }
         );
