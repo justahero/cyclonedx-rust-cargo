@@ -510,6 +510,16 @@ fn validate_services(
     }
 }
 
+/// Function to check given [`UrnUuid`] is valid, if not returns an [`validator::ValidationError`].
+pub fn validate_urn_uuid(urn_uuid: &UrnUuid) -> Result<(), validator::ValidationError> {
+    if !matches_urn_uuid_regex(&urn_uuid.0) {
+        return Err(validator::ValidationError::new(
+            "UrnUuid does not match regular expression",
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UrnUuid(pub(crate) String);
 
