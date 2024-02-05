@@ -38,6 +38,7 @@ use crate::{
     validation::{ValidateOld, ValidationContext, ValidationError, ValidationResult},
 };
 
+use super::create_validation_errors;
 use super::signature::Signature;
 
 #[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
@@ -67,8 +68,11 @@ pub struct Component {
     pub licenses: Option<Licenses>,
     #[validate]
     pub copyright: Option<NormalizedString>,
+    #[validate]
     pub cpe: Option<Cpe>,
+    #[validate]
     pub purl: Option<Purl>,
+    #[validate]
     pub swid: Option<Swid>,
     pub modified: Option<bool>,
     pub pedigree: Option<Pedigree>,
@@ -370,11 +374,7 @@ pub enum Scope {
 
 impl Validate for Scope {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate_scope(self).map_err(|err| {
-            let mut errors = validator::ValidationErrors::new();
-            errors.add("", err);
-            errors
-        })
+        validate_scope(self).map_err(create_validation_errors)
     }
 }
 
@@ -437,11 +437,7 @@ pub struct MimeType(pub(crate) String);
 
 impl validator::Validate for MimeType {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate_mime_type(self).map_err(|err| {
-            let mut errors = validator::ValidationErrors::new();
-            errors.add("", err);
-            errors
-        })
+        validate_mime_type(self).map_err(create_validation_errors)
     }
 }
 
@@ -504,8 +500,30 @@ impl ValidateOld for Swid {
     }
 }
 
+pub fn validate_cpe(cpe: &Cpe) -> Result<(), validator::ValidationError> {
+    static UUID_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
+            r##"([c][pP][eE]:/[AHOaho]?(:[A-Za-z0-9\._\-~%]*){0,6})|(cpe:2\.3:[aho\*\-](:(((\?*|\*?)([a-zA-Z0-9\-\._]|(\\[\\\*\?!"#$$%&'\(\)\+,/:;<=>@\[\]\^`\{\|}~]))+(\?*|\*?))|[\*\-])){5}(:(([a-zA-Z]{2,3}(-([a-zA-Z]{2}|[0-9]{3}))?)|[\*\-]))(:(((\?*|\*?)([a-zA-Z0-9\-\._]|(\\[\\\*\?!"#$$%&'\(\)\+,/:;<=>@\[\]\^`\{\|}~]))+(\?*|\*?))|[\*\-])){4})"##,
+        ).expect("Failed to compile regex.")
+    });
+
+    if !UUID_REGEX.is_match(&cpe.0) {
+        return Err(validator::ValidationError::new(
+            "Cpe does not match regular expression",
+        ));
+    }
+
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Cpe(pub(crate) String);
+
+impl validator::Validate for Cpe {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_cpe(self).map_err(create_validation_errors)
+    }
+}
 
 impl FromStr for Cpe {
     type Err = ValidationError;

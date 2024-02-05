@@ -39,3 +39,12 @@ pub mod vulnerability_rating;
 pub mod vulnerability_reference;
 pub mod vulnerability_source;
 pub mod vulnerability_target;
+
+/// Helper function to convert [`validator::ValidationError`] into a [`validator::ValidationErrors`].
+pub(crate) fn create_validation_errors(
+    error: validator::ValidationError,
+) -> validator::ValidationErrors {
+    let mut errors = validator::ValidationErrors::new();
+    errors.add("", error);
+    errors
+}

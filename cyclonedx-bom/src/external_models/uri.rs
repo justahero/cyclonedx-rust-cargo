@@ -23,12 +23,30 @@ use packageurl::PackageUrl;
 use serde::Serialize;
 use thiserror::Error;
 
-use crate::validation::{
-    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
+use crate::{
+    models::create_validation_errors,
+    validation::{
+        FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
+    },
 };
+
+pub fn validate_purl(purl: &Purl) -> Result<(), validator::ValidationError> {
+    if matches!(PackageUrl::from_str(&purl.0), Err(_)) {
+        return Err(validator::ValidationError::new(
+            "Purl does not conform to Package URL spec",
+        ));
+    }
+    Ok(())
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Purl(pub(crate) String);
+
+impl validator::Validate for Purl {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_purl(self).map_err(create_validation_errors)
+    }
+}
 
 impl Purl {
     pub fn new(package_type: &str, name: &str, version: &str) -> Result<Purl, UriError> {
@@ -84,11 +102,7 @@ pub struct Uri(pub(crate) String);
 
 impl validator::Validate for Uri {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate_uri(self).map_err(|err| {
-            let mut errors = validator::ValidationErrors::new();
-            errors.add("", err);
-            errors
-        })
+        validate_uri(self).map_err(create_validation_errors)
     }
 }
 

@@ -15,6 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+use validator::Validate;
 
 use crate::external_models::uri::Uri;
 use crate::models::hash::Hashes;
@@ -23,14 +24,19 @@ use crate::validation::{
     ValidationResult,
 };
 
+use super::create_validation_errors;
+
 /// Represents a way to document systems, sites, and information that may be relevant but which are not included with the BOM.
 ///
 /// Please see the [CycloneDX use case](https://cyclonedx.org/use-cases/#external-references) for more information and examples.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct ExternalReference {
+    #[validate]
     pub external_reference_type: ExternalReferenceType,
+    #[validate]
     pub url: Uri,
     pub comment: Option<String>,
+    #[validate]
     pub hashes: Option<Hashes>,
 }
 
@@ -107,6 +113,20 @@ impl ValidateOld for ExternalReferences {
     }
 }
 
+pub fn validate_external_reference_type(
+    reference_type: &ExternalReferenceType,
+) -> Result<(), validator::ValidationError> {
+    if matches!(
+        reference_type,
+        ExternalReferenceType::UnknownExternalReferenceType(_)
+    ) {
+        return Err(validator::ValidationError::new(
+            "Unknown external reference type",
+        ));
+    }
+    Ok(())
+}
+
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_externalReferenceType).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ExternalReferenceType {
@@ -127,6 +147,12 @@ pub enum ExternalReferenceType {
     Other,
     #[doc(hidden)]
     UnknownExternalReferenceType(String),
+}
+
+impl validator::Validate for ExternalReferenceType {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_external_reference_type(self).map_err(create_validation_errors)
+    }
 }
 
 impl ToString for ExternalReferenceType {

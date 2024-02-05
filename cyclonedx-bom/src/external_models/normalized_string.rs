@@ -18,6 +18,7 @@
 
 use serde::Serialize;
 
+use crate::models::create_validation_errors;
 use crate::validation::{
     FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
 };
@@ -46,11 +47,7 @@ pub fn validate_normalized_string(input: &str) -> Result<(), validator::Validati
 
 impl validator::Validate for NormalizedString {
     fn validate(&self) -> Result<(), validator::ValidationErrors> {
-        validate_normalized_string(self).map_err(|err| {
-            let mut errors = validator::ValidationErrors::new();
-            errors.add("", err);
-            errors
-        })
+        validate_normalized_string(self).map_err(create_validation_errors)
     }
 }
 

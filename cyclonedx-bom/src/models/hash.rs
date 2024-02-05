@@ -18,18 +18,23 @@
 
 use once_cell::sync::Lazy;
 use regex::Regex;
+use validator::Validate;
 
 use crate::validation::{
     FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 
+use super::create_validation_errors;
+
 /// Represents the hash of the component
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_hashType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Hash {
+    #[validate]
     pub alg: HashAlgorithm,
+    #[validate]
     pub content: HashValue,
 }
 
@@ -57,6 +62,18 @@ impl ValidateOld for Hash {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Hashes(pub Vec<Hash>);
 
+impl validator::Validate for Hashes {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        let mut result = std::result::Result::Ok(());
+
+        for hash in &self.0 {
+            result = validator::ValidationErrors::merge(result, "", hash.validate());
+        }
+
+        result
+    }
+}
+
 impl ValidateOld for Hashes {
     fn validate_with_context(
         &self,
@@ -74,6 +91,15 @@ impl ValidateOld for Hashes {
             .into_iter()
             .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
     }
+}
+
+pub fn validate_hash_algorithm(
+    algorithm: &HashAlgorithm,
+) -> Result<(), validator::ValidationError> {
+    if matches!(algorithm, HashAlgorithm::UnknownHashAlgorithm(_)) {
+        return Err(validator::ValidationError::new("Unknown HashAlgorithm"));
+    }
+    Ok(())
 }
 
 /// Represents the algorithm used to create the hash
@@ -96,6 +122,12 @@ pub enum HashAlgorithm {
     BLAKE3,
     #[doc(hidden)]
     UnknownHashAlgorithm(String),
+}
+
+impl validator::Validate for HashAlgorithm {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_hash_algorithm(self).map_err(create_validation_errors)
+    }
 }
 
 impl ToString for HashAlgorithm {
@@ -156,9 +188,31 @@ impl ValidateOld for HashAlgorithm {
     }
 }
 
+pub fn validate_hash_value(value: &HashValue) -> Result<(), validator::ValidationError> {
+    static HASH_VALUE_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
+            r"^([a-fA-F0-9]{32})|([a-fA-F0-9]{40})|([a-fA-F0-9]{64})|([a-fA-F0-9]{96})|([a-fA-F0-9]{128})$",
+        ).expect("Failed to compile regex.")
+    });
+
+    if !HASH_VALUE_REGEX.is_match(&value.0) {
+        return Err(validator::ValidationError::new(
+            "HashValue does not match regular expression",
+        ));
+    }
+
+    Ok(())
+}
+
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_hashValue)
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HashValue(pub String);
+
+impl validator::Validate for HashValue {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_hash_value(self).map_err(create_validation_errors)
+    }
+}
 
 impl ValidateOld for HashValue {
     fn validate_with_context(
@@ -188,6 +242,25 @@ impl ValidateOld for HashValue {
 mod test {
     use super::*;
     use pretty_assertions::assert_eq;
+
+    #[test]
+    fn it_validates_hash() {
+        let hash = Hash {
+            alg: HashAlgorithm::MD5,
+            content: HashValue("a3bf1f3d584747e2569483783ddee45b".to_string()),
+        };
+        assert!(hash.validate().is_ok());
+    }
+
+    #[test]
+    fn it_validates_hashes() {
+        let hash = Hash {
+            alg: HashAlgorithm::MD5,
+            content: HashValue("a3bf1f3d584747e2569483783ddee45b".to_string()),
+        };
+        let hashes = Hashes(vec![hash]);
+        assert!(hashes.validate().is_ok());
+    }
 
     #[test]
     fn it_should_pass_validation() {
