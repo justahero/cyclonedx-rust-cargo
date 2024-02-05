@@ -17,15 +17,18 @@
  */
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use serde::Serialize;
 
 use crate::{
-    external_models::normalized_string::NormalizedString,
+    external_models::normalized_string::{validate_normalized_string, NormalizedString},
     validation::{FailureReason, Validate, ValidationContext, ValidationError, ValidationResult},
 };
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct AttachedText {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub(crate) content_type: Option<NormalizedString>,
+    #[validate(custom(function = "validate_encoding"))]
     pub(crate) encoding: Option<Encoding>,
     pub(crate) content: String,
 }
@@ -86,7 +89,15 @@ impl Validate for AttachedText {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// Function to check [`Encoding`].
+pub(crate) fn validate_encoding(encoding: &Encoding) -> Result<(), validator::ValidationError> {
+    if matches!(encoding, Encoding::UnknownEncoding(_)) {
+        return Err(validator::ValidationError::new("Unknown encoding"));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub(crate) enum Encoding {
     Base64,
     #[doc(hidden)]
