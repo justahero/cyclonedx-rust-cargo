@@ -20,6 +20,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::Serialize;
 use std::str::FromStr;
+use validator::Validate;
 
 use crate::models::attached_text::AttachedText;
 use crate::models::code::{Commits, Patches};
@@ -39,21 +40,32 @@ use crate::{
 
 use super::signature::Signature;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Component {
+    #[validate(custom(function = "validate_classification"))]
     pub component_type: Classification,
+    #[validate]
     pub mime_type: Option<MimeType>,
     pub bom_ref: Option<String>,
+    #[validate]
     pub supplier: Option<OrganizationalEntity>,
+    #[validate]
     pub author: Option<NormalizedString>,
+    #[validate]
     pub publisher: Option<NormalizedString>,
+    #[validate]
     pub group: Option<NormalizedString>,
+    #[validate]
     pub name: NormalizedString,
+    #[validate]
     pub version: Option<NormalizedString>,
+    #[validate]
     pub description: Option<NormalizedString>,
+    #[validate]
     pub scope: Option<Scope>,
     pub hashes: Option<Hashes>,
     pub licenses: Option<Licenses>,
+    #[validate]
     pub copyright: Option<NormalizedString>,
     pub cpe: Option<Cpe>,
     pub purl: Option<Purl>,
@@ -276,7 +288,7 @@ pub fn validate_classification(
     Ok(())
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum Classification {
     Application,
     Framework,
@@ -340,6 +352,13 @@ impl ValidateOld for Classification {
     }
 }
 
+pub fn validate_scope(scope: &Scope) -> Result<(), validator::ValidationError> {
+    if matches!(scope, Scope::UnknownScope(_)) {
+        return Err(validator::ValidationError::new("Unknown scope"));
+    }
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Scope {
     Required,
@@ -347,6 +366,16 @@ pub enum Scope {
     Excluded,
     #[doc(hidden)]
     UnknownScope(String),
+}
+
+impl Validate for Scope {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_scope(self).map_err(|err| {
+            let mut errors = validator::ValidationErrors::new();
+            errors.add("", err);
+            errors
+        })
+    }
 }
 
 impl ToString for Scope {
@@ -406,6 +435,16 @@ pub fn validate_mime_type(mime_type: &MimeType) -> Result<(), validator::Validat
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct MimeType(pub(crate) String);
 
+impl validator::Validate for MimeType {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_mime_type(self).map_err(|err| {
+            let mut errors = validator::ValidationErrors::new();
+            errors.add("", err);
+            errors
+        })
+    }
+}
+
 impl ValidateOld for MimeType {
     fn validate_with_context(
         &self,
@@ -434,6 +473,7 @@ pub struct Swid {
     pub version: Option<String>,
     pub tag_version: Option<u32>,
     pub patch: Option<bool>,
+    #[validate]
     pub text: Option<AttachedText>,
     #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
