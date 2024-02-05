@@ -17,7 +17,7 @@
  */
 
 use crate::{
-    external_models::normalized_string::NormalizedString,
+    external_models::{normalized_string::NormalizedString, validate_normalized_string},
     validation::{
         Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
     },
@@ -53,9 +53,10 @@ impl Validate for Properties {
 /// Represents an individual property with a name and value
 ///
 /// Defined via the [XML schema](https://cyclonedx.org/docs/1.3/xml/#type_propertyType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, ::validator::Validate)]
 pub struct Property {
     pub name: String,
+    #[validate(custom = "validate_normalized_string")]
     pub value: NormalizedString,
 }
 

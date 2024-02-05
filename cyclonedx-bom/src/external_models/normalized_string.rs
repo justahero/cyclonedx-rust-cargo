@@ -16,6 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+use serde::Serialize;
+
 use crate::validation::{
     FailureReason, Validate, ValidationContext, ValidationError, ValidationResult,
 };
@@ -25,8 +27,22 @@ use std::ops::Deref;
 /// A string that does not contain carriage return, line feed, or tab characters
 ///
 /// Defined via the [XML schema](https://www.w3.org/TR/xmlschema-2/#normalizedString)
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize)]
 pub struct NormalizedString(pub(crate) String);
+
+/// Validates given string.
+pub fn validate_normalized_string(input: &str) -> Result<(), validator::ValidationError> {
+    if input.contains("\r\n")
+        || input.contains('\r')
+        || input.contains('\n')
+        || input.contains('\t')
+    {
+        return Err(validator::ValidationError::new(
+            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+        ));
+    }
+    Ok(())
+}
 
 impl NormalizedString {
     /// Construct a `NormalizedString` by replacing all of the invalid characters with spaces

@@ -20,3 +20,5 @@ pub mod date_time;
 pub mod normalized_string;
 pub mod spdx;
 pub mod uri;
+
+pub use normalized_string::validate_normalized_string;
