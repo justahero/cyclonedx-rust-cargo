@@ -30,6 +30,7 @@ pub struct AttachedText {
     pub(crate) content_type: Option<NormalizedString>,
     #[validate(custom(function = "validate_encoding"))]
     pub(crate) encoding: Option<Encoding>,
+    #[validate(custom(function = "validate_content"))]
     pub(crate) content: String,
 }
 
@@ -87,6 +88,17 @@ impl Validate for AttachedText {
             .into_iter()
             .fold(ValidationResult::default(), |acc, result| acc.merge(result)))
     }
+}
+
+/// Function to validate the content of [`AttachedText`]
+pub(crate) fn validate_content(content: &str) -> Result<(), validator::ValidationError> {
+    if matches!(STANDARD.decode(content), Err(_)) {
+        return Err(validator::ValidationError::new(
+            "Content is not Base64 encoded",
+        ));
+    }
+
+    Ok(())
 }
 
 /// Function to check [`Encoding`].

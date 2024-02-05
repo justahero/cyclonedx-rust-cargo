@@ -195,7 +195,7 @@ mod test {
             alg: HashAlgorithm::MD5,
             content: HashValue("a3bf1f3d584747e2569483783ddee45b".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(validation_result, ValidationResult::Passed);
@@ -207,7 +207,7 @@ mod test {
             alg: HashAlgorithm::UnknownHashAlgorithm("unknown algorithm".to_string()),
             content: HashValue("not a hash".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(

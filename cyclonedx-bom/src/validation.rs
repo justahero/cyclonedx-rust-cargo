@@ -17,7 +17,7 @@
  */
 
 pub trait Validate {
-    fn validate(&self) -> Result<ValidationResult, ValidationError> {
+    fn validate_old(&self) -> Result<ValidationResult, ValidationError> {
         self.validate_with_context(ValidationContext::default())
     }
 

@@ -211,7 +211,7 @@ mod test {
             comment: Some("Comment".to_string()),
             hashes: Some(Hashes(vec![])),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(validation_result, ValidationResult::Passed);
@@ -230,7 +230,7 @@ mod test {
                 content: HashValue("invalid hash".to_string()),
             }])),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(

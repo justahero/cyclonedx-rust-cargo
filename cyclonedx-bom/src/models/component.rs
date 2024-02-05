@@ -32,7 +32,7 @@ use crate::validation::{FailureReason, ValidationPathComponent};
 use crate::{
     external_models::{
         normalized_string::NormalizedString,
-        uri::{Purl, Uri},
+        uri::{validate_uri, Purl, Uri},
     },
     validation::{Validate, ValidationContext, ValidationError, ValidationResult},
 };
@@ -427,7 +427,7 @@ impl Validate for MimeType {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Swid {
     pub tag_id: String,
     pub name: String,
@@ -435,6 +435,7 @@ pub struct Swid {
     pub tag_version: Option<u32>,
     pub patch: Option<bool>,
     pub text: Option<AttachedText>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
 }
 
@@ -471,7 +472,7 @@ impl FromStr for Cpe {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let result = Cpe(s.to_string());
-        result.validate()?;
+        result.validate_old()?;
         Ok(result)
     }
 }

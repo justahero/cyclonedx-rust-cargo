@@ -104,7 +104,7 @@ mod test {
             name: "property name".to_string(),
             value: NormalizedString("property value".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(validation_result, ValidationResult::Passed);
@@ -116,7 +116,7 @@ mod test {
             name: "property name".to_string(),
             value: NormalizedString("spaces and \ttabs".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(

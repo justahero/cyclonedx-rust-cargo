@@ -150,7 +150,7 @@ mod test {
                 value: "abcdefgh".to_string(),
             }),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(validation_result, ValidationResult::Passed);
@@ -167,7 +167,7 @@ mod test {
                 value: "abcdefgh".to_string(),
             }),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(

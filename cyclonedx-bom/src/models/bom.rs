@@ -654,7 +654,7 @@ mod test {
             signature: None,
         };
 
-        let actual = bom.validate().expect("Failed to validate bom");
+        let actual = bom.validate_old().expect("Failed to validate bom");
 
         assert_eq!(
             actual,
@@ -715,7 +715,7 @@ mod test {
             signature: None,
         };
 
-        let actual = bom.validate().expect("Failed to validate bom");
+        let actual = bom.validate_old().expect("Failed to validate bom");
 
         assert_eq!(
             actual,

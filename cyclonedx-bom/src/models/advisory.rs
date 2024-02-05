@@ -110,7 +110,7 @@ mod test {
             title: Some(NormalizedString::new("title")),
             url: Uri("https://example.com".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(validation_result, ValidationResult::Passed);
@@ -122,7 +122,7 @@ mod test {
             title: Some(NormalizedString("invalid\ttitle".to_string())),
             url: Uri("invalid url".to_string()),
         }])
-        .validate()
+        .validate_old()
         .expect("Error while validating");
 
         assert_eq!(
