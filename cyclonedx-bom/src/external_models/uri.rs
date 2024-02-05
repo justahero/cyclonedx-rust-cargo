@@ -20,6 +20,7 @@ use std::{convert::TryFrom, str::FromStr};
 
 use fluent_uri::Uri as Url;
 use packageurl::PackageUrl;
+use serde::Serialize;
 use thiserror::Error;
 
 use crate::validation::{
@@ -68,7 +69,17 @@ impl FromStr for Purl {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+pub fn validate_uri(uri: &Uri) -> Result<(), validator::ValidationError> {
+    if matches!(Url::parse(uri.0.as_str()), Err(_)) {
+        return Err(validator::ValidationError::new(
+            "Uri does not conform to RFC 3986",
+        ));
+    }
+
+    Ok(())
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Uri(pub(crate) String);
 
 impl TryFrom<String> for Uri {

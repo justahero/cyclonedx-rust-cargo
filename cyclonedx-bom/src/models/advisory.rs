@@ -16,7 +16,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-use crate::external_models::{normalized_string::NormalizedString, uri::Uri};
+use crate::external_models::{
+    normalized_string::{validate_normalized_string, NormalizedString},
+    uri::{validate_uri, Uri},
+};
 use crate::validation::{
     Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
@@ -24,9 +27,11 @@ use crate::validation::{
 /// Represents an advisory, a notification of a threat to a component, service, or system.
 ///
 /// Defined via the [XML schema](https://cyclonedx.org/docs/1.4/xml/#type_advisoryType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Advisory {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub title: Option<NormalizedString>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Uri,
 }
 
