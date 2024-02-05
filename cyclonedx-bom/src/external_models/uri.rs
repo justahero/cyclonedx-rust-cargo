@@ -82,6 +82,16 @@ pub fn validate_uri(uri: &Uri) -> Result<(), validator::ValidationError> {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Uri(pub(crate) String);
 
+impl validator::Validate for Uri {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_uri(self).map_err(|err| {
+            let mut errors = validator::ValidationErrors::new();
+            errors.add("", err);
+            errors
+        })
+    }
+}
+
 impl TryFrom<String> for Uri {
     type Error = UriError;
 
@@ -130,10 +140,21 @@ pub enum UriError {
 #[cfg(test)]
 mod test {
     use pretty_assertions::assert_eq;
+    use validator::Validate;
 
     use crate::validation::FailureReason;
 
     use super::*;
+
+    #[test]
+    fn it_validates_uri() {
+        assert!(Uri("https://example.com".to_string()).validate().is_ok());
+    }
+
+    #[test]
+    fn it_should_fail_uri_validation() {
+        assert!(Uri("invalid uri".to_string()).validate().is_err());
+    }
 
     #[test]
     fn valid_purls_should_pass_validation() {

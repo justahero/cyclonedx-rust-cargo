@@ -25,6 +25,7 @@ use crate::{
         ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
     },
 };
+use validator::Validate;
 
 /// Represents the contact information for an organization
 ///
@@ -91,10 +92,13 @@ impl ValidateOld for OrganizationalContact {
 /// Represents an organization with name, url, and contact information
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_organizationalEntity)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct OrganizationalEntity {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate]
     pub url: Option<Vec<Uri>>,
+    #[validate]
     pub contact: Option<Vec<OrganizationalContact>>,
 }
 

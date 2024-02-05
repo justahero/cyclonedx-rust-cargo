@@ -44,6 +44,16 @@ pub fn validate_normalized_string(input: &str) -> Result<(), validator::Validati
     Ok(())
 }
 
+impl validator::Validate for NormalizedString {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_normalized_string(self).map_err(|err| {
+            let mut errors = validator::ValidationErrors::new();
+            errors.add("", err);
+            errors
+        })
+    }
+}
+
 impl NormalizedString {
     /// Construct a `NormalizedString` by replacing all of the invalid characters with spaces
     /// ```
