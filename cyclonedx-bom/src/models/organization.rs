@@ -129,7 +129,7 @@ impl Validate for OrganizationalEntity {
 
 #[cfg(test)]
 mod test {
-    use crate::validation::{FailureReason, ValidationPathComponent};
+    use crate::validation::FailureReason;
 
     use super::*;
     use pretty_assertions::assert_eq;
@@ -156,14 +156,10 @@ mod test {
         assert_eq!(
             actual,
             ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![ValidationPathComponent::Struct {
-                        struct_name: "OrganizationalContact".to_string(),
-                        field_name: "name".to_string()
-                    }])
-                }]
+                reasons: vec![FailureReason::new(
+                    "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                    ValidationContext::new().with_struct("OrganizationalContact", "name")
+                ),]
             }
         )
     }
@@ -184,33 +180,18 @@ mod test {
             actual,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "OrganizationalContact".to_string(),
-                            field_name: "name".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "OrganizationalContact".to_string(),
-                            field_name: "email".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "OrganizationalContact".to_string(),
-                            field_name: "phone".to_string()
-                        }])
-                    }
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new().with_struct("OrganizationalContact", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new().with_struct("OrganizationalContact", "email")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new().with_struct("OrganizationalContact", "phone")
+                    ),
                 ]
             }
         )
@@ -227,14 +208,10 @@ mod test {
         assert_eq!(
             actual,
             ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![ValidationPathComponent::Struct {
-                        struct_name: "OrganizationalEntity".to_string(),
-                        field_name: "name".to_string()
-                    }])
-                }]
+                reasons: vec![FailureReason::new(
+                    "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                    ValidationContext::new().with_struct("OrganizationalEntity", "name")
+                )]
             }
         )
     }
@@ -255,41 +232,23 @@ mod test {
             actual,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "OrganizationalEntity".to_string(),
-                            field_name: "name".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalEntity".to_string(),
-                                field_name: "url".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalEntity".to_string(),
-                                field_name: "contact".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalContact".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    }
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new().with_struct("OrganizationalEntity", "name")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_struct("OrganizationalEntity", "url")
+                            .with_index(0)
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("OrganizationalEntity", "contact")
+                            .with_index(0)
+                            .with_struct("OrganizationalContact", "name")
+                    ),
                 ]
             }
         )

@@ -276,117 +276,56 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message: "DateTime does not conform to ISO 8601".to_string(),
-                        context: ValidationContext(vec![ValidationPathComponent::Struct {
-                            struct_name: "Metadata".to_string(),
-                            field_name: "timestamp".to_string()
-                        }])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "tools".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Tool".to_string(),
-                                field_name: "vendor".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "authors".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalContact".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "component".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Component".to_string(),
-                                field_name: "component_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "manufacture".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalEntity".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "supplier".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalEntity".to_string(),
-                                field_name: "name".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "SPDX expression is not valid".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "licenses".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "Expression".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Struct {
-                                struct_name: "Metadata".to_string(),
-                                field_name: "properties".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Property".to_string(),
-                                field_name: "value".to_string()
-                            }
-                        ])
-                    },
+                    FailureReason::new(
+                        "DateTime does not conform to ISO 8601",
+                        ValidationContext::new().with_struct("Metadata", "timestamp")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "tools")
+                            .with_index(0)
+                            .with_struct("Tool", "vendor")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "authors")
+                            .with_index(0)
+                            .with_struct("OrganizationalContact", "name")
+                    ),
+                    FailureReason::new(
+                        "Unknown classification",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "component")
+                            .with_struct("Component", "component_type")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "manufacture")
+                            .with_struct("OrganizationalEntity", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "supplier")
+                            .with_struct("OrganizationalEntity", "name")
+                    ),
+                    FailureReason::new(
+                        "SPDX expression is not valid",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "licenses")
+                            .with_index(0)
+                            .with_enum("Expression")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_struct("Metadata", "properties")
+                            .with_index(0)
+                            .with_struct("Property", "value")
+                    ),
                 ]
             }
         );

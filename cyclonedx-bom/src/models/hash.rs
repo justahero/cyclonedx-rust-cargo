@@ -19,9 +19,7 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
-};
+use crate::validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult};
 
 /// Represents the hash of the component
 ///
@@ -135,12 +133,9 @@ impl HashAlgorithm {
 impl Validate for HashAlgorithm {
     fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            HashAlgorithm::UnknownHashAlgorithm(_) => ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown HashAlgorithm".to_string(),
-                    context,
-                }],
-            },
+            HashAlgorithm::UnknownHashAlgorithm(_) => {
+                ValidationResult::failure("Unknown HashAlgorithm", context)
+            }
             _ => ValidationResult::Passed,
         }
     }
@@ -161,18 +156,15 @@ impl Validate for HashValue {
         if HASH_VALUE_REGEX.is_match(&self.0) {
             ValidationResult::Passed
         } else {
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "HashValue does not match regular expression".to_string(),
-                    context,
-                }],
-            }
+            ValidationResult::failure("HashValue does not match regular expression", context)
         }
     }
 }
 
 #[cfg(test)]
 mod test {
+    use crate::validation::FailureReason;
+
     use super::*;
     use pretty_assertions::assert_eq;
 
@@ -199,26 +191,18 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message: "Unknown HashAlgorithm".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Hash".to_string(),
-                                field_name: "alg".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "HashValue does not match regular expression".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Hash".to_string(),
-                                field_name: "content".to_string()
-                            }
-                        ])
-                    }
+                    FailureReason::new(
+                        "Unknown HashAlgorithm",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Hash", "alg")
+                    ),
+                    FailureReason::new(
+                        "HashValue does not match regular expression",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Hash", "content")
+                    ),
                 ]
             }
         );

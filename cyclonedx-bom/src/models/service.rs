@@ -21,9 +21,7 @@ use crate::models::external_reference::ExternalReferences;
 use crate::models::license::Licenses;
 use crate::models::organization::OrganizationalEntity;
 use crate::models::property::Properties;
-use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
-};
+use crate::validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult};
 
 use super::signature::Signature;
 
@@ -255,12 +253,9 @@ impl DataFlowType {
 impl Validate for DataFlowType {
     fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            DataFlowType::UnknownDataFlow(_) => ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown data flow type".to_string(),
-                    context,
-                }],
-            },
+            DataFlowType::UnknownDataFlow(_) => {
+                ValidationResult::failure("Unknown data flow type", context)
+            }
             _ => ValidationResult::Passed,
         }
     }
@@ -276,6 +271,7 @@ mod test {
             property::Property,
             signature::Algorithm,
         },
+        validation::FailureReason,
     };
 
     use super::*;
@@ -388,176 +384,92 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "provider".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "OrganizationalEntity".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "group".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "version".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "description".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "endpoints".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown data flow type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "data".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "DataClassification".to_string(),
-                                field_name: "flow".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "data".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "DataClassification".to_string(),
-                                field_name: "classification".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "SPDX expression is not valid".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "licenses".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::EnumVariant {
-                                variant_name: "Expression".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown external reference type".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "external_references".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "ExternalReference".to_string(),
-                                field_name: "external_reference_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "properties".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Property".to_string(),
-                                field_name: "value".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "services".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Service".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "provider")
+                            .with_struct("OrganizationalEntity", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "group")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "version")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "description")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "endpoints")
+                            .with_index(0)
+                    ),
+                    FailureReason::new(
+                        "Unknown data flow type",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "data")
+                            .with_index(0)
+                            .with_struct("DataClassification", "flow")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "data")
+                            .with_index(0)
+                            .with_struct("DataClassification", "classification")
+                    ),
+                    FailureReason::new(
+                        "SPDX expression is not valid",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "licenses")
+                            .with_index(0)
+                            .with_enum("Expression")
+                    ),
+                    FailureReason::new(
+                        "Unknown external reference type",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "external_references")
+                            .with_index(0)
+                            .with_struct("ExternalReference", "external_reference_type")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "properties")
+                            .with_index(0)
+                            .with_struct("Property", "value")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Service", "services")
+                            .with_index(0)
+                            .with_struct("Service", "name")
+                    ),
                 ]
             }
         );

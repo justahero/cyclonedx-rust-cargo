@@ -566,172 +566,86 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message: "Unknown patch classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "patch_type".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "diff".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Diff".to_string(),
-                                field_name: "text".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "AttachedText".to_string(),
-                                field_name: "content_type".to_string()
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "diff".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Diff".to_string(),
-                                field_name: "url".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Unknown issue classification".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "issue_type".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "id".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "description".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "source".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Source".to_string(),
-                                field_name: "name".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "source".to_string()
-                            },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Source".to_string(),
-                                field_name: "url".to_string()
-                            },
-                        ])
-                    },
-                    FailureReason {
-                        message: "Uri does not conform to RFC 3986".to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Patch".to_string(),
-                                field_name: "resolves".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Issue".to_string(),
-                                field_name: "references".to_string()
-                            },
-                            ValidationPathComponent::Array { index: 0 }
-                        ])
-                    },
+                    FailureReason::new(
+                        "Unknown patch classification",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "patch_type")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "diff")
+                            .with_struct("Diff", "text")
+                            .with_struct("AttachedText", "content_type")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "diff")
+                            .with_struct("Diff", "url")
+                    ),
+                    FailureReason::new(
+                        "Unknown issue classification",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "issue_type")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "id")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "name")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "description")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "source")
+                            .with_struct("Source", "name")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "source")
+                            .with_struct("Source", "url")
+                    ),
+                    FailureReason::new(
+                        "Uri does not conform to RFC 3986",
+                        ValidationContext::new()
+                            .with_index(0)
+                            .with_struct("Patch", "resolves")
+                            .with_index(0)
+                            .with_struct("Issue", "references")
+                            .with_index(0)
+                    ),
                 ]
             }
         );

@@ -969,12 +969,10 @@ mod test {
 
         assert_eq!(
             validation_result,
-            ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "UrnUuid does not match regular expression".to_string(),
-                    context: ValidationContext::default()
-                }]
-            }
+            ValidationResult::failure(
+                "UrnUuid does not match regular expression",
+                ValidationContext::default()
+            )
         );
     }
 }

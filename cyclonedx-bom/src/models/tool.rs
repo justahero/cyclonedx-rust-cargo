@@ -134,17 +134,12 @@ mod test {
         assert_eq!(
             validation_result,
             ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Tool".to_string(),
-                            field_name: "vendor".to_string(),
-                        }
-                    ])
-                }]
+                reasons: vec![FailureReason::new(
+                    "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                    ValidationContext::new()
+                        .with_index(0)
+                        .with_struct("Tool", "vendor")
+                )]
             }
         );
     }
@@ -177,30 +172,18 @@ mod test {
             validation_result,
             ValidationResult::Failed {
                 reasons: vec![
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 1 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Tool".to_string(),
-                                field_name: "vendor".to_string(),
-                            }
-                        ])
-                    },
-                    FailureReason {
-                        message:
-                            "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                                .to_string(),
-                        context: ValidationContext(vec![
-                            ValidationPathComponent::Array { index: 2 },
-                            ValidationPathComponent::Struct {
-                                struct_name: "Tool".to_string(),
-                                field_name: "name".to_string(),
-                            }
-                        ])
-                    }
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(1)
+                            .with_struct("Tool", "vendor")
+                    ),
+                    FailureReason::new(
+                        "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                        ValidationContext::new()
+                            .with_index(2)
+                            .with_struct("Tool", "name")
+                    ),
                 ]
             }
         );

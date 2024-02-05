@@ -111,17 +111,12 @@ mod test {
         assert_eq!(
             validation_result,
             ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n"
-                        .to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Property".to_string(),
-                            field_name: "value".to_string(),
-                        },
-                    ]),
-                }],
+                reasons: vec![FailureReason::new(
+                    "NormalizedString contains invalid characters \\r \\n \\t or \\r\\n",
+                    ValidationContext::new()
+                        .with_index(0)
+                        .with_struct("Property", "value")
+                )],
             }
         );
     }

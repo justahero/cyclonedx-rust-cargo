@@ -45,6 +45,14 @@ impl ValidationContext {
         self.extend_context(component)
     }
 
+    /// Extends the [`ValidationContext`] with an enum value.
+    pub(crate) fn with_enum(&self, variant_name: &str) -> Self {
+        let component = vec![ValidationPathComponent::EnumVariant {
+            variant_name: variant_name.to_string(),
+        }];
+        self.extend_context(component)
+    }
+
     /// Extends the [`ValidationContext`] with a struct field.
     pub(crate) fn with_struct(
         &self,

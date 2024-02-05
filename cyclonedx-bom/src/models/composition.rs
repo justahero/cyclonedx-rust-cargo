@@ -16,9 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationPathComponent, ValidationResult,
-};
+use crate::validation::{Validate, ValidationContext, ValidationPathComponent, ValidationResult};
 
 use super::signature::Signature;
 
@@ -107,12 +105,9 @@ impl AggregateType {
 impl Validate for AggregateType {
     fn validate_with_context(&self, context: ValidationContext) -> ValidationResult {
         match self {
-            AggregateType::UnknownAggregateType(_) => ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown aggregate type".to_string(),
-                    context,
-                }],
-            },
+            AggregateType::UnknownAggregateType(_) => {
+                ValidationResult::failure("Unknown aggregate type", context)
+            }
             _ => ValidationResult::Passed,
         }
     }
@@ -123,7 +118,7 @@ pub struct BomReference(pub(crate) String);
 
 #[cfg(test)]
 mod test {
-    use crate::models::signature::Algorithm;
+    use crate::{models::signature::Algorithm, validation::FailureReason};
 
     use super::*;
     use pretty_assertions::assert_eq;
@@ -160,16 +155,12 @@ mod test {
         assert_eq!(
             validation_result,
             ValidationResult::Failed {
-                reasons: vec![FailureReason {
-                    message: "Unknown aggregate type".to_string(),
-                    context: ValidationContext(vec![
-                        ValidationPathComponent::Array { index: 0 },
-                        ValidationPathComponent::Struct {
-                            struct_name: "Composition".to_string(),
-                            field_name: "aggregate".to_string()
-                        }
-                    ])
-                }]
+                reasons: vec![FailureReason::new(
+                    "Unknown aggregate type",
+                    ValidationContext::new()
+                        .with_index(0)
+                        .with_struct("Composition", "aggregate")
+                )]
             }
         );
     }
