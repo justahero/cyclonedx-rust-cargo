@@ -17,7 +17,7 @@
  */
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 
@@ -31,7 +31,7 @@ pub struct Composition {
     pub signature: Option<Signature>,
 }
 
-impl Validate for Composition {
+impl ValidateOld for Composition {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -52,7 +52,7 @@ impl Validate for Composition {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Compositions(pub Vec<Composition>);
 
-impl Validate for Compositions {
+impl ValidateOld for Compositions {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -112,7 +112,7 @@ impl AggregateType {
     }
 }
 
-impl Validate for AggregateType {
+impl ValidateOld for AggregateType {
     fn validate_with_context(
         &self,
         context: ValidationContext,

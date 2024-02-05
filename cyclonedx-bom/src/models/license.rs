@@ -26,7 +26,7 @@ use crate::external_models::{
 };
 use crate::models::attached_text::AttachedText;
 use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+    ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
 
 /// Represents whether a license is a named license or an SPDX license expression
@@ -44,7 +44,7 @@ impl LicenseChoice {
     }
 }
 
-impl Validate for LicenseChoice {
+impl ValidateOld for LicenseChoice {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -120,7 +120,7 @@ impl License {
     }
 }
 
-impl Validate for License {
+impl ValidateOld for License {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -156,7 +156,7 @@ impl Validate for License {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Licenses(pub Vec<LicenseChoice>);
 
-impl Validate for Licenses {
+impl ValidateOld for Licenses {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -183,7 +183,7 @@ pub enum LicenseIdentifier {
     Name(NormalizedString),
 }
 
-impl Validate for LicenseIdentifier {
+impl ValidateOld for LicenseIdentifier {
     fn validate_with_context(
         &self,
         context: ValidationContext,

@@ -22,7 +22,7 @@ use crate::models::license::Licenses;
 use crate::models::organization::OrganizationalEntity;
 use crate::models::property::Properties;
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 
@@ -79,7 +79,7 @@ impl Service {
     }
 }
 
-impl Validate for Service {
+impl ValidateOld for Service {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -174,7 +174,7 @@ impl Validate for Service {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Services(pub Vec<Service>);
 
-impl Validate for Services {
+impl ValidateOld for Services {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -201,7 +201,7 @@ pub struct DataClassification {
     pub classification: NormalizedString,
 }
 
-impl Validate for DataClassification {
+impl ValidateOld for DataClassification {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -264,7 +264,7 @@ impl DataFlowType {
     }
 }
 
-impl Validate for DataFlowType {
+impl ValidateOld for DataFlowType {
     fn validate_with_context(
         &self,
         context: ValidationContext,

@@ -21,7 +21,7 @@ use std::convert::TryFrom;
 use spdx::{Expression, ParseMode};
 use thiserror::Error;
 
-use crate::validation::{FailureReason, Validate, ValidationResult};
+use crate::validation::{FailureReason, ValidateOld, ValidationResult};
 
 /// An identifier for a single, specific license
 ///
@@ -80,7 +80,7 @@ impl ToString for SpdxIdentifier {
     }
 }
 
-impl Validate for SpdxIdentifier {
+impl ValidateOld for SpdxIdentifier {
     fn validate_with_context(
         &self,
         context: crate::validation::ValidationContext,
@@ -180,7 +180,7 @@ impl ToString for SpdxExpression {
     }
 }
 
-impl Validate for SpdxExpression {
+impl ValidateOld for SpdxExpression {
     fn validate_with_context(
         &self,
         context: crate::validation::ValidationContext,

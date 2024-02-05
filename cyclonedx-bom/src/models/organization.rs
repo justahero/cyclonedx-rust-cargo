@@ -22,7 +22,7 @@ use crate::{
         uri::Uri,
     },
     validation::{
-        Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+        ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
     },
 };
 
@@ -55,7 +55,7 @@ impl OrganizationalContact {
     }
 }
 
-impl Validate for OrganizationalContact {
+impl ValidateOld for OrganizationalContact {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -98,7 +98,7 @@ pub struct OrganizationalEntity {
     pub contact: Option<Vec<OrganizationalContact>>,
 }
 
-impl Validate for OrganizationalEntity {
+impl ValidateOld for OrganizationalEntity {
     fn validate_with_context(
         &self,
         context: ValidationContext,

@@ -22,7 +22,7 @@ use thiserror::Error;
 use time::{format_description::well_known::Iso8601, OffsetDateTime};
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationResult,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
 };
 
 /// For the purposes of CycloneDX SBOM documents, `DateTime` is a ISO8601 formatted timestamp
@@ -66,7 +66,7 @@ impl TryFrom<String> for DateTime {
     }
 }
 
-impl Validate for DateTime {
+impl ValidateOld for DateTime {
     fn validate_with_context(
         &self,
         context: ValidationContext,

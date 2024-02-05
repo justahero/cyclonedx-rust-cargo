@@ -24,7 +24,7 @@ use serde::Serialize;
 use thiserror::Error;
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationResult,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -45,7 +45,7 @@ impl ToString for Purl {
     }
 }
 
-impl Validate for Purl {
+impl ValidateOld for Purl {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -95,7 +95,7 @@ impl TryFrom<String> for Uri {
     }
 }
 
-impl Validate for Uri {
+impl ValidateOld for Uri {
     fn validate_with_context(
         &self,
         context: ValidationContext,

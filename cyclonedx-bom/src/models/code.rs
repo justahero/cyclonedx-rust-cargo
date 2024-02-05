@@ -19,7 +19,7 @@
 use crate::{
     external_models::{date_time::DateTime, normalized_string::NormalizedString, uri::Uri},
     validation::{
-        FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+        FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
         ValidationResult,
     },
 };
@@ -35,7 +35,7 @@ pub struct Commit {
     pub message: Option<NormalizedString>,
 }
 
-impl Validate for Commit {
+impl ValidateOld for Commit {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -81,7 +81,7 @@ impl Validate for Commit {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Commits(pub Vec<Commit>);
 
-impl Validate for Commits {
+impl ValidateOld for Commits {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -106,7 +106,7 @@ pub struct Diff {
     pub url: Option<Uri>,
 }
 
-impl Validate for Diff {
+impl ValidateOld for Diff {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -138,7 +138,7 @@ pub struct IdentifiableAction {
     pub email: Option<NormalizedString>,
 }
 
-impl Validate for IdentifiableAction {
+impl ValidateOld for IdentifiableAction {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -180,7 +180,7 @@ pub struct Issue {
     pub references: Option<Vec<Uri>>,
 }
 
-impl Validate for Issue {
+impl ValidateOld for Issue {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -266,7 +266,7 @@ impl IssueClassification {
     }
 }
 
-impl Validate for IssueClassification {
+impl ValidateOld for IssueClassification {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -290,7 +290,7 @@ pub struct Patch {
     pub resolves: Option<Vec<Issue>>,
 }
 
-impl Validate for Patch {
+impl ValidateOld for Patch {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -329,7 +329,7 @@ impl Validate for Patch {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Patches(pub Vec<Patch>);
 
-impl Validate for Patches {
+impl ValidateOld for Patches {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -382,7 +382,7 @@ impl PatchClassification {
     }
 }
 
-impl Validate for PatchClassification {
+impl ValidateOld for PatchClassification {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -405,7 +405,7 @@ pub struct Source {
     pub url: Option<Uri>,
 }
 
-impl Validate for Source {
+impl ValidateOld for Source {
     fn validate_with_context(
         &self,
         context: ValidationContext,

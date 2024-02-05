@@ -81,7 +81,7 @@ fn to_purl_subpath(path: &Utf8Path) -> String {
 }
 
 fn assert_validation_passes(purl: &CdxPurl) {
-    use cyclonedx_bom::validation::{Validate, ValidationResult};
+    use cyclonedx_bom::validation::{ValidateOld, ValidationResult};
     assert_eq!(purl.validate_old().unwrap(), ValidationResult::Passed);
 }
 

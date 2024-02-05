@@ -1,6 +1,6 @@
 mod examples {
     use cyclonedx_bom::models::bom::Bom;
-    use cyclonedx_bom::validation::{Validate, ValidationResult};
+    use cyclonedx_bom::validation::{ValidateOld, ValidationResult};
 
     #[ignore]
     #[test]

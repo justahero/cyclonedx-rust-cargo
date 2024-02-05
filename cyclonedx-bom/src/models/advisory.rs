@@ -21,7 +21,7 @@ use crate::external_models::{
     uri::{validate_uri, Uri},
 };
 use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+    ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
 
 /// Represents an advisory, a notification of a threat to a component, service, or system.
@@ -51,7 +51,7 @@ impl Advisory {
     }
 }
 
-impl Validate for Advisory {
+impl ValidateOld for Advisory {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -76,7 +76,7 @@ impl Validate for Advisory {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Advisories(pub Vec<Advisory>);
 
-impl Validate for Advisories {
+impl ValidateOld for Advisories {
     fn validate_with_context(
         &self,
         context: ValidationContext,

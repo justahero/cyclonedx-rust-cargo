@@ -21,7 +21,7 @@ use serde::Serialize;
 
 use crate::{
     external_models::normalized_string::{validate_normalized_string, NormalizedString},
-    validation::{FailureReason, Validate, ValidationContext, ValidationError, ValidationResult},
+    validation::{FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult},
 };
 
 #[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
@@ -48,7 +48,7 @@ impl AttachedText {
     }
 }
 
-impl Validate for AttachedText {
+impl ValidateOld for AttachedText {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -134,7 +134,7 @@ impl Encoding {
     }
 }
 
-impl Validate for Encoding {
+impl ValidateOld for Encoding {
     fn validate_with_context(
         &self,
         context: ValidationContext,

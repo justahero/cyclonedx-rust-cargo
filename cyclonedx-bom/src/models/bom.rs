@@ -38,7 +38,7 @@ use crate::models::service::{Service, Services};
 use crate::models::signature::Signature;
 use crate::models::vulnerability::Vulnerabilities;
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 use crate::xml::{FromXmlDocument, ToXml};
@@ -220,7 +220,7 @@ impl Default for Bom {
     }
 }
 
-impl Validate for Bom {
+impl ValidateOld for Bom {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -550,7 +550,7 @@ impl From<uuid::Uuid> for UrnUuid {
     }
 }
 
-impl Validate for UrnUuid {
+impl ValidateOld for UrnUuid {
     fn validate_with_context(
         &self,
         context: ValidationContext,

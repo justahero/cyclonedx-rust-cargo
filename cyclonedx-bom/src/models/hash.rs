@@ -20,7 +20,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 
@@ -33,7 +33,7 @@ pub struct Hash {
     pub content: HashValue,
 }
 
-impl Validate for Hash {
+impl ValidateOld for Hash {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -57,7 +57,7 @@ impl Validate for Hash {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Hashes(pub Vec<Hash>);
 
-impl Validate for Hashes {
+impl ValidateOld for Hashes {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -139,7 +139,7 @@ impl HashAlgorithm {
     }
 }
 
-impl Validate for HashAlgorithm {
+impl ValidateOld for HashAlgorithm {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -160,7 +160,7 @@ impl Validate for HashAlgorithm {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HashValue(pub String);
 
-impl Validate for HashValue {
+impl ValidateOld for HashValue {
     fn validate_with_context(
         &self,
         context: ValidationContext,

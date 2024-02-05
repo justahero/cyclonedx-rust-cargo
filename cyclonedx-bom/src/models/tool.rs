@@ -19,7 +19,7 @@
 use crate::external_models::normalized_string::NormalizedString;
 use crate::models::hash::Hashes;
 use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+    ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
 
 /// Represents the tool used to create the BOM
@@ -50,7 +50,7 @@ impl Tool {
     }
 }
 
-impl Validate for Tool {
+impl ValidateOld for Tool {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -90,7 +90,7 @@ impl Validate for Tool {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Tools(pub Vec<Tool>);
 
-impl Validate for Tools {
+impl ValidateOld for Tools {
     fn validate_with_context(
         &self,
         context: ValidationContext,

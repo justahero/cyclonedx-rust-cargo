@@ -19,7 +19,7 @@
 use serde::Serialize;
 
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationResult,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
 };
 use std::fmt::Display;
 use std::ops::Deref;
@@ -83,7 +83,7 @@ impl Display for NormalizedString {
     }
 }
 
-impl Validate for NormalizedString {
+impl ValidateOld for NormalizedString {
     fn validate_with_context(
         &self,
         context: ValidationContext,

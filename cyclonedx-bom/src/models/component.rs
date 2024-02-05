@@ -34,7 +34,7 @@ use crate::{
         normalized_string::NormalizedString,
         uri::{validate_uri, Purl, Uri},
     },
-    validation::{Validate, ValidationContext, ValidationError, ValidationResult},
+    validation::{ValidateOld, ValidationContext, ValidationError, ValidationResult},
 };
 
 use super::signature::Signature;
@@ -104,7 +104,7 @@ impl Component {
     }
 }
 
-impl Validate for Component {
+impl ValidateOld for Component {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -247,7 +247,7 @@ impl Validate for Component {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Components(pub Vec<Component>);
 
-impl Validate for Components {
+impl ValidateOld for Components {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -323,7 +323,7 @@ impl Classification {
     }
 }
 
-impl Validate for Classification {
+impl ValidateOld for Classification {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -372,7 +372,7 @@ impl Scope {
     }
 }
 
-impl Validate for Scope {
+impl ValidateOld for Scope {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -406,7 +406,7 @@ pub fn validate_mime_type(mime_type: &MimeType) -> Result<(), validator::Validat
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct MimeType(pub(crate) String);
 
-impl Validate for MimeType {
+impl ValidateOld for MimeType {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -439,7 +439,7 @@ pub struct Swid {
     pub url: Option<Uri>,
 }
 
-impl Validate for Swid {
+impl ValidateOld for Swid {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -477,7 +477,7 @@ impl FromStr for Cpe {
     }
 }
 
-impl Validate for Cpe {
+impl ValidateOld for Cpe {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -507,7 +507,7 @@ pub struct ComponentEvidence {
     pub copyright: Option<CopyrightTexts>,
 }
 
-impl Validate for ComponentEvidence {
+impl ValidateOld for ComponentEvidence {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -543,7 +543,7 @@ pub struct Pedigree {
     pub notes: Option<String>,
 }
 
-impl Validate for Pedigree {
+impl ValidateOld for Pedigree {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -589,7 +589,7 @@ impl Validate for Pedigree {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Copyright(pub String);
 
-impl Validate for Copyright {
+impl ValidateOld for Copyright {
     fn validate_with_context(
         &self,
         _context: ValidationContext,
@@ -601,7 +601,7 @@ impl Validate for Copyright {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CopyrightTexts(pub(crate) Vec<Copyright>);
 
-impl Validate for CopyrightTexts {
+impl ValidateOld for CopyrightTexts {
     fn validate_with_context(
         &self,
         context: ValidationContext,

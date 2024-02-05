@@ -25,7 +25,7 @@ use crate::models::organization::{OrganizationalContact, OrganizationalEntity};
 use crate::models::property::Properties;
 use crate::models::tool::Tools;
 use crate::validation::{
-    Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+    ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
 
 /// Represents additional information about a BOM
@@ -65,7 +65,7 @@ impl Metadata {
     }
 }
 
-impl Validate for Metadata {
+impl ValidateOld for Metadata {
     fn validate_with_context(
         &self,
         context: ValidationContext,

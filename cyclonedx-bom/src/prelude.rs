@@ -27,4 +27,4 @@ pub use crate::models::{
     component::{Component, Components},
     metadata::Metadata,
 };
-pub use crate::validation::{Validate, ValidationResult};
+pub use crate::validation::{ValidateOld, ValidationResult};

@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-pub trait Validate {
+pub trait ValidateOld {
     fn validate_old(&self) -> Result<ValidationResult, ValidationError> {
         self.validate_with_context(ValidationContext::default())
     }

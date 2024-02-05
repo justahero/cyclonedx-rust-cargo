@@ -19,7 +19,7 @@
 use crate::{
     external_models::{normalized_string::NormalizedString, validate_normalized_string},
     validation::{
-        Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
+        ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
     },
 };
 
@@ -31,7 +31,7 @@ use crate::{
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Properties(pub Vec<Property>);
 
-impl Validate for Properties {
+impl ValidateOld for Properties {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -75,7 +75,7 @@ impl Property {
     }
 }
 
-impl Validate for Property {
+impl ValidateOld for Property {
     fn validate_with_context(
         &self,
         context: ValidationContext,

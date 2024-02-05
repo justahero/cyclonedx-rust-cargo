@@ -19,7 +19,7 @@
 use crate::external_models::uri::Uri;
 use crate::models::hash::Hashes;
 use crate::validation::{
-    FailureReason, Validate, ValidationContext, ValidationError, ValidationPathComponent,
+    FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
 };
 
@@ -55,7 +55,7 @@ impl ExternalReference {
     }
 }
 
-impl Validate for ExternalReference {
+impl ValidateOld for ExternalReference {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -89,7 +89,7 @@ impl Validate for ExternalReference {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExternalReferences(pub Vec<ExternalReference>);
 
-impl Validate for ExternalReferences {
+impl ValidateOld for ExternalReferences {
     fn validate_with_context(
         &self,
         context: ValidationContext,
@@ -176,7 +176,7 @@ impl ExternalReferenceType {
     }
 }
 
-impl Validate for ExternalReferenceType {
+impl ValidateOld for ExternalReferenceType {
     fn validate_with_context(
         &self,
         context: ValidationContext,
