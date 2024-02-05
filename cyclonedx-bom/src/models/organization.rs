@@ -17,7 +17,10 @@
  */
 
 use crate::{
-    external_models::{normalized_string::NormalizedString, uri::Uri},
+    external_models::{
+        normalized_string::{validate_normalized_string, NormalizedString},
+        uri::Uri,
+    },
     validation::{
         Validate, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
     },
@@ -26,10 +29,13 @@ use crate::{
 /// Represents the contact information for an organization
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_organizationalContact)
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, validator::Validate)]
 pub struct OrganizationalContact {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub email: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub phone: Option<NormalizedString>,
 }
 

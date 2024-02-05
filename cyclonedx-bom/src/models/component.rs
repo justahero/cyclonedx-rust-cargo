@@ -18,6 +18,7 @@
 
 use once_cell::sync::Lazy;
 use regex::Regex;
+use serde::Serialize;
 use std::str::FromStr;
 
 use crate::models::attached_text::AttachedText;
@@ -264,6 +265,17 @@ impl Validate for Components {
     }
 }
 
+/// Checks the given [`Classification`] is valid.
+pub fn validate_classification(
+    classification: &Classification,
+) -> Result<(), validator::ValidationError> {
+    if matches!(classification, Classification::UnknownClassification(_)) {
+        return Err(validator::ValidationError::new("Unknown classification"));
+    }
+
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Classification {
     Application,
@@ -377,7 +389,21 @@ impl Validate for Scope {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// Checks if given [`MimeType`] is valid / supported.
+pub fn validate_mime_type(mime_type: &MimeType) -> Result<(), validator::ValidationError> {
+    static UUID_REGEX: Lazy<Regex> =
+        Lazy::new(|| Regex::new(r"^[-+a-z0-9.]+/[-+a-z0-9.]+$").expect("Failed to compile regex."));
+
+    if !UUID_REGEX.is_match(&mime_type.0) {
+        return Err(validator::ValidationError::new(
+            "MimeType does not match regular expression",
+        ));
+    }
+
+    Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct MimeType(pub(crate) String);
 
 impl Validate for MimeType {
