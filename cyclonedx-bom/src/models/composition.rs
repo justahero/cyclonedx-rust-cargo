@@ -16,6 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+use serde::Serialize;
+
 use crate::validation::{
     FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
     ValidationResult,
@@ -23,8 +25,9 @@ use crate::validation::{
 
 use super::signature::Signature;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Composition {
+    #[validate(custom(function = "validate_aggregate_type"))]
     pub aggregate: AggregateType,
     pub assemblies: Option<Vec<BomReference>>,
     pub dependencies: Option<Vec<BomReference>>,
@@ -52,6 +55,16 @@ impl ValidateOld for Composition {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Compositions(pub Vec<Composition>);
 
+impl validator::Validate for Compositions {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, composition| {
+                validator::ValidationErrors::merge(result, "", composition.validate())
+            })
+    }
+}
+
 impl ValidateOld for Compositions {
     fn validate_with_context(
         &self,
@@ -71,7 +84,16 @@ impl ValidateOld for Compositions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+pub fn validate_aggregate_type(
+    aggregate_type: &AggregateType,
+) -> Result<(), validator::ValidationError> {
+    if matches!(aggregate_type, AggregateType::UnknownAggregateType(_)) {
+        return Err(validator::ValidationError::new("Unknown aggregate type"));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum AggregateType {
     Complete,
     Incomplete,

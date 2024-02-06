@@ -25,6 +25,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use validator::Validate;
 use xml::{EmitterConfig, EventReader, EventWriter, ParserConfig};
 
 use crate::errors::BomError;
@@ -75,20 +76,29 @@ impl ToString for SpecVersion {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Bom {
     pub version: u32,
+    #[validate(custom(function = "validate_urn_uuid"))]
     pub serial_number: Option<UrnUuid>,
+    #[validate]
     pub metadata: Option<Metadata>,
+    #[validate]
     pub components: Option<Components>,
+    #[validate]
     pub services: Option<Services>,
+    #[validate]
     pub external_references: Option<ExternalReferences>,
     pub dependencies: Option<Dependencies>,
+    #[validate]
     pub compositions: Option<Compositions>,
+    #[validate]
     pub properties: Option<Properties>,
     /// Added in version 1.4
+    #[validate]
     pub vulnerabilities: Option<Vulnerabilities>,
     /// Added in version 1.4
+    #[validate]
     pub signature: Option<Signature>,
 }
 
@@ -520,7 +530,7 @@ pub fn validate_urn_uuid(urn_uuid: &UrnUuid) -> Result<(), validator::Validation
     Ok(())
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct UrnUuid(pub(crate) String);
 
 impl UrnUuid {

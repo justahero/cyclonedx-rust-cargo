@@ -76,6 +76,16 @@ impl ValidateOld for Advisory {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Advisories(pub Vec<Advisory>);
 
+impl validator::Validate for Advisories {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, advisory| {
+                validator::ValidationErrors::merge(result, "", advisory.validate())
+            })
+    }
+}
+
 impl ValidateOld for Advisories {
     fn validate_with_context(
         &self,

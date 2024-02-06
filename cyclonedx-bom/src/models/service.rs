@@ -15,8 +15,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+use validator::Validate;
 
-use crate::external_models::{normalized_string::NormalizedString, uri::Uri};
+use crate::external_models::{
+    normalized_string::{validate_normalized_string, NormalizedString},
+    uri::Uri,
+};
 use crate::models::external_reference::ExternalReferences;
 use crate::models::license::Licenses;
 use crate::models::organization::OrganizationalEntity;
@@ -26,28 +30,40 @@ use crate::validation::{
     ValidationResult,
 };
 
-use super::signature::Signature;
+use super::{create_validation_errors, signature::Signature};
 
 /// Represents a service as described in the [CycloneDX use cases](https://cyclonedx.org/use-cases/#service-definition)
 ///
 /// Defined via the [XML schema](https://cyclonedx.org/docs/1.3/xml/#type_service)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Service {
     pub bom_ref: Option<String>,
+    #[validate]
     pub provider: Option<OrganizationalEntity>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub group: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: NormalizedString,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub version: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub description: Option<NormalizedString>,
+    #[validate]
     pub endpoints: Option<Vec<Uri>>,
     pub authenticated: Option<bool>,
     pub x_trust_boundary: Option<bool>,
+    #[validate]
     pub data: Option<Vec<DataClassification>>,
+    #[validate]
     pub licenses: Option<Licenses>,
+    #[validate]
     pub external_references: Option<ExternalReferences>,
+    #[validate]
     pub properties: Option<Properties>,
+    #[validate]
     pub services: Option<Services>,
     /// Added in version 1.4
+    #[validate]
     pub signature: Option<Signature>,
 }
 
@@ -174,6 +190,16 @@ impl ValidateOld for Service {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Services(pub Vec<Service>);
 
+impl validator::Validate for Services {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, service| {
+                validator::ValidationErrors::merge(result, "", service.validate())
+            })
+    }
+}
+
 impl ValidateOld for Services {
     fn validate_with_context(
         &self,
@@ -195,8 +221,9 @@ impl ValidateOld for Services {
 /// Represents the data classification and data flow
 ///
 /// Defined via the [XML schema](https://cyclonedx.org/docs/1.3/xml/#type_dataClassificationType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct DataClassification {
+    #[validate]
     pub flow: DataFlowType,
     pub classification: NormalizedString,
 }
@@ -226,6 +253,15 @@ impl ValidateOld for DataClassification {
     }
 }
 
+pub fn validate_data_flow_type(
+    data_flow_type: &DataFlowType,
+) -> Result<(), validator::ValidationError> {
+    if matches!(data_flow_type, DataFlowType::UnknownDataFlow(_)) {
+        return Err(validator::ValidationError::new("Unknown data flow type"));
+    }
+    Ok(())
+}
+
 /// Represents the flow direction of the data
 ///
 /// Defined via the [XML schema](https://cyclonedx.org/docs/1.3/xml/#type_dataFlowType)
@@ -237,6 +273,12 @@ pub enum DataFlowType {
     Unknown,
     #[doc(hidden)]
     UnknownDataFlow(String),
+}
+
+impl validator::Validate for DataFlowType {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_data_flow_type(self).map_err(create_validation_errors)
+    }
 }
 
 impl ToString for DataFlowType {
