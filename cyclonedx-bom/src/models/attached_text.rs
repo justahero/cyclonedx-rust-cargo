@@ -21,10 +21,12 @@ use serde::Serialize;
 
 use crate::{
     external_models::normalized_string::{validate_normalized_string, NormalizedString},
-    validation::{FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult},
+    validation::{
+        FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationResult,
+    },
 };
 
-#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, validator::Validate)]
 pub struct AttachedText {
     #[validate(custom(function = "validate_normalized_string"))]
     pub(crate) content_type: Option<NormalizedString>,

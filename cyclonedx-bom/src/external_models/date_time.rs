@@ -18,6 +18,7 @@
 
 use std::convert::TryFrom;
 
+use serde::Serialize;
 use thiserror::Error;
 use time::{format_description::well_known::Iso8601, OffsetDateTime};
 
@@ -40,8 +41,20 @@ use crate::validation::{
 ///
 /// assert_eq!(date_time.to_string(), timestamp);
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct DateTime(pub(crate) String);
+
+pub fn validate_date_time(date_time: &DateTime) -> Result<(), validator::ValidationError> {
+    if matches!(
+        OffsetDateTime::parse(&date_time.0, &Iso8601::DEFAULT),
+        Err(_)
+    ) {
+        return Err(validator::ValidationError::new(
+            "DateTime does not conform to ISO 8601",
+        ));
+    }
+    Ok(())
+}
 
 impl DateTime {
     pub fn now() -> Result<Self, DateTimeError> {

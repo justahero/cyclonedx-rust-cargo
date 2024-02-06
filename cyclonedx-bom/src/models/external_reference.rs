@@ -95,6 +95,18 @@ impl ValidateOld for ExternalReference {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ExternalReferences(pub Vec<ExternalReference>);
 
+impl validator::Validate for ExternalReferences {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        let mut result = std::result::Result::Ok(());
+
+        for external_reference in &self.0 {
+            result = validator::ValidationErrors::merge(result, "", external_reference.validate());
+        }
+
+        result
+    }
+}
+
 impl ValidateOld for ExternalReferences {
     fn validate_with_context(
         &self,

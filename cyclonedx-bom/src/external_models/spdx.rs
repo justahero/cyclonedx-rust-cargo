@@ -18,10 +18,23 @@
 
 use std::convert::TryFrom;
 
+use serde::Serialize;
 use spdx::{Expression, ParseMode};
 use thiserror::Error;
 
-use crate::validation::{FailureReason, ValidateOld, ValidationResult};
+use crate::{
+    models::create_validation_errors,
+    validation::{FailureReason, ValidateOld, ValidationResult},
+};
+
+pub fn validate_spdx_identifier(
+    identifier: &SpdxIdentifier,
+) -> Result<(), validator::ValidationError> {
+    if matches!(SpdxIdentifier::try_from(identifier.clone()), Err(_)) {
+        return Err(validator::ValidationError::new("Not a valid identifier"));
+    }
+    Ok(())
+}
 
 /// An identifier for a single, specific license
 ///
@@ -36,8 +49,14 @@ use crate::validation::{FailureReason, ValidateOld, ValidationResult};
 /// assert_eq!(spdx_identifier.to_string(), identifier);
 /// # Ok::<(), SpdxIdentifierError>(())
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct SpdxIdentifier(pub(crate) String);
+
+impl validator::Validate for SpdxIdentifier {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_spdx_identifier(self).map_err(create_validation_errors)
+    }
+}
 
 impl SpdxIdentifier {
     /// Attempt to create an `SpdxIdentifier` using a best-effort translation of the license ID
@@ -106,6 +125,18 @@ pub enum SpdxIdentifierError {
     InvalidImpreciseSpdxIdentifier(String),
 }
 
+pub fn validate_spdx_expression(
+    expression: &SpdxExpression,
+) -> Result<(), validator::ValidationError> {
+    if matches!(Expression::parse(&expression.0), Err(_)) {
+        return Err(validator::ValidationError::new(
+            "SPDX expression is not valid",
+        ));
+    }
+
+    Ok(())
+}
+
 /// An expression that describes the set of licenses that cover the software
 ///
 /// The specification for a valid SPDX license expression can be found on the [SPDX website](https://spdx.github.io/spdx-spec/SPDX-license-expressions/)
@@ -119,8 +150,14 @@ pub enum SpdxIdentifierError {
 /// assert_eq!(spdx_expression.to_string(), expression);
 /// # Ok::<(), SpdxExpressionError>(())
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct SpdxExpression(pub(crate) String);
+
+impl validator::Validate for SpdxExpression {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_spdx_expression(self).map_err(create_validation_errors)
+    }
+}
 
 impl SpdxExpression {
     /// Parse a mostly-valid SPDX expression into a valid expression

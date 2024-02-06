@@ -17,8 +17,9 @@
  */
 
 use thiserror::Error;
+use validator::Validate;
 
-use crate::external_models::date_time::{DateTime, DateTimeError};
+use crate::external_models::date_time::{validate_date_time, DateTime, DateTimeError};
 use crate::models::component::Component;
 use crate::models::license::Licenses;
 use crate::models::organization::{OrganizationalContact, OrganizationalEntity};
@@ -31,15 +32,23 @@ use crate::validation::{
 /// Represents additional information about a BOM
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_metadata)
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, validator::Validate)]
 pub struct Metadata {
+    #[validate(custom(function = "validate_date_time"))]
     pub timestamp: Option<DateTime>,
+    #[validate]
     pub tools: Option<Tools>,
+    #[validate]
     pub authors: Option<Vec<OrganizationalContact>>,
+    #[validate]
     pub component: Option<Component>,
+    #[validate]
     pub manufacture: Option<OrganizationalEntity>,
+    #[validate]
     pub supplier: Option<OrganizationalEntity>,
+    #[validate]
     pub licenses: Option<Licenses>,
+    #[validate]
     pub properties: Option<Properties>,
 }
 

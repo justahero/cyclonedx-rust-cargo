@@ -64,7 +64,9 @@ pub struct Component {
     pub description: Option<NormalizedString>,
     #[validate]
     pub scope: Option<Scope>,
+    #[validate]
     pub hashes: Option<Hashes>,
+    #[validate]
     pub licenses: Option<Licenses>,
     #[validate]
     pub copyright: Option<NormalizedString>,
@@ -75,12 +77,18 @@ pub struct Component {
     #[validate]
     pub swid: Option<Swid>,
     pub modified: Option<bool>,
+    #[validate]
     pub pedigree: Option<Pedigree>,
+    #[validate]
     pub external_references: Option<ExternalReferences>,
+    #[validate]
     pub properties: Option<Properties>,
+    #[validate]
     pub components: Option<Components>,
+    #[validate]
     pub evidence: Option<ComponentEvidence>,
     /// Added in version 1.4
+    #[validate]
     pub signature: Option<Signature>,
 }
 
@@ -262,6 +270,18 @@ impl ValidateOld for Component {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Components(pub Vec<Component>);
+
+impl validator::Validate for Components {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        let mut result = std::result::Result::Ok(());
+
+        for component in &self.0 {
+            result = validator::ValidationErrors::merge(result, "", component.validate());
+        }
+
+        result
+    }
+}
 
 impl ValidateOld for Components {
     fn validate_with_context(
@@ -559,9 +579,11 @@ impl ValidateOld for Cpe {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct ComponentEvidence {
+    #[validate]
     pub licenses: Option<Licenses>,
+    #[validate]
     pub copyright: Option<CopyrightTexts>,
 }
 
@@ -591,12 +613,17 @@ impl ValidateOld for ComponentEvidence {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Pedigree {
+    #[validate]
     pub ancestors: Option<Components>,
+    #[validate]
     pub descendants: Option<Components>,
+    #[validate]
     pub variants: Option<Components>,
+    #[validate]
     pub commits: Option<Commits>,
+    #[validate]
     pub patches: Option<Patches>,
     pub notes: Option<String>,
 }
@@ -644,8 +671,18 @@ impl ValidateOld for Pedigree {
     }
 }
 
+pub fn validate_copyright(_copyright: &Copyright) -> Result<(), validator::ValidationError> {
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Copyright(pub String);
+
+impl validator::Validate for Copyright {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_copyright(self).map_err(create_validation_errors)
+    }
+}
 
 impl ValidateOld for Copyright {
     fn validate_with_context(
@@ -658,6 +695,16 @@ impl ValidateOld for Copyright {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CopyrightTexts(pub(crate) Vec<Copyright>);
+
+impl validator::Validate for CopyrightTexts {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, text| {
+                validator::ValidationErrors::merge(result, "", text.validate())
+            })
+    }
+}
 
 impl ValidateOld for CopyrightTexts {
     fn validate_with_context(

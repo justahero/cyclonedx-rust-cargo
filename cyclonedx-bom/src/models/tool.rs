@@ -15,8 +15,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+use validator::Validate;
 
-use crate::external_models::normalized_string::NormalizedString;
+use crate::external_models::normalized_string::{validate_normalized_string, NormalizedString};
 use crate::models::hash::Hashes;
 use crate::validation::{
     ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
@@ -25,11 +26,15 @@ use crate::validation::{
 /// Represents the tool used to create the BOM
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_toolType)
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, validator::Validate)]
 pub struct Tool {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub vendor: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub version: Option<NormalizedString>,
+    #[validate]
     pub hashes: Option<Hashes>,
 }
 
@@ -89,6 +94,16 @@ impl ValidateOld for Tool {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Tools(pub Vec<Tool>);
+
+impl validator::Validate for Tools {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, tool| {
+                validator::ValidationErrors::merge(result, "", tool.validate())
+            })
+    }
+}
 
 impl ValidateOld for Tools {
     fn validate_with_context(

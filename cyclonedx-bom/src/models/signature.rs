@@ -19,12 +19,16 @@
 use std::str::FromStr;
 
 /// Enveloped signature in [JSON Signature Format (JSF)](https://cyberphone.github.io/doc/security/jsf.html)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Signature {
     /// Signature algorithm.
     pub algorithm: Algorithm,
     /// The signature data.
     pub value: String,
+}
+
+pub fn validate_algorithm(_algorithm: &Algorithm) -> Result<(), validator::ValidationError> {
+    Ok(())
 }
 
 /*

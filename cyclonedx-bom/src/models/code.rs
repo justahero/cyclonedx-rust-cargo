@@ -15,23 +15,34 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+use serde::Serialize;
+use validator::Validate;
 
 use crate::{
-    external_models::{date_time::DateTime, normalized_string::NormalizedString, uri::Uri},
+    external_models::{
+        date_time::{validate_date_time, DateTime},
+        normalized_string::{validate_normalized_string, NormalizedString},
+        uri::{validate_uri, Uri},
+    },
     validation::{
         FailureReason, ValidateOld, ValidationContext, ValidationError, ValidationPathComponent,
         ValidationResult,
     },
 };
 
-use super::attached_text::AttachedText;
+use super::{attached_text::AttachedText, create_validation_errors};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Commit {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub uid: Option<NormalizedString>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
+    #[validate]
     pub author: Option<IdentifiableAction>,
+    #[validate]
     pub committer: Option<IdentifiableAction>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub message: Option<NormalizedString>,
 }
 
@@ -81,6 +92,18 @@ impl ValidateOld for Commit {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Commits(pub Vec<Commit>);
 
+impl validator::Validate for Commits {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        let mut result = std::result::Result::Ok(());
+
+        for commit in &self.0 {
+            result = validator::ValidationErrors::merge(result, "", commit.validate());
+        }
+
+        result
+    }
+}
+
 impl ValidateOld for Commits {
     fn validate_with_context(
         &self,
@@ -100,9 +123,11 @@ impl ValidateOld for Commits {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Diff {
+    #[validate]
     pub text: Option<AttachedText>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
 }
 
@@ -131,10 +156,13 @@ impl ValidateOld for Diff {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct IdentifiableAction {
+    #[validate(custom(function = "validate_date_time"))]
     pub timestamp: Option<DateTime>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub email: Option<NormalizedString>,
 }
 
@@ -170,13 +198,19 @@ impl ValidateOld for IdentifiableAction {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Issue {
+    #[validate]
     pub issue_type: IssueClassification,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub id: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate(custom(function = "validate_normalized_string"))]
     pub description: Option<NormalizedString>,
+    #[validate]
     pub source: Option<Source>,
+    #[validate]
     pub references: Option<Vec<Uri>>,
 }
 
@@ -234,6 +268,20 @@ impl ValidateOld for Issue {
     }
 }
 
+pub fn validate_issue_classification(
+    classification: &IssueClassification,
+) -> Result<(), validator::ValidationError> {
+    if matches!(
+        classification,
+        IssueClassification::UnknownIssueClassification(_)
+    ) {
+        return Err(validator::ValidationError::new(
+            "Unknown issue classification",
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum IssueClassification {
     Defect,
@@ -241,6 +289,12 @@ pub enum IssueClassification {
     Security,
     #[doc(hidden)]
     UnknownIssueClassification(String),
+}
+
+impl validator::Validate for IssueClassification {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_issue_classification(self).map_err(create_validation_errors)
+    }
 }
 
 impl ToString for IssueClassification {
@@ -283,10 +337,13 @@ impl ValidateOld for IssueClassification {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Patch {
+    #[validate(custom(function = "validate_patch_classification"))]
     pub patch_type: PatchClassification,
+    #[validate]
     pub diff: Option<Diff>,
+    #[validate]
     pub resolves: Option<Vec<Issue>>,
 }
 
@@ -329,6 +386,18 @@ impl ValidateOld for Patch {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Patches(pub Vec<Patch>);
 
+impl validator::Validate for Patches {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        let mut result = std::result::Result::Ok(());
+
+        for patch in &self.0 {
+            result = validator::ValidationErrors::merge(result, "", patch.validate());
+        }
+
+        result
+    }
+}
+
 impl ValidateOld for Patches {
     fn validate_with_context(
         &self,
@@ -347,7 +416,21 @@ impl ValidateOld for Patches {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+pub fn validate_patch_classification(
+    classification: &PatchClassification,
+) -> Result<(), validator::ValidationError> {
+    if matches!(
+        classification,
+        PatchClassification::UnknownPatchClassification(_)
+    ) {
+        return Err(validator::ValidationError::new(
+            "Unknown patch classification",
+        ));
+    }
+    Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum PatchClassification {
     Unofficial,
     Monkey,
@@ -399,9 +482,11 @@ impl ValidateOld for PatchClassification {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, validator::Validate)]
 pub struct Source {
+    #[validate(custom(function = "validate_normalized_string"))]
     pub name: Option<NormalizedString>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
 }
 

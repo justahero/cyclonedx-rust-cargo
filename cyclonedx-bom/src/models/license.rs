@@ -18,24 +18,42 @@
 
 use std::convert::TryFrom;
 
+use serde::Serialize;
+use validator::Validate;
+
 use crate::external_models::spdx::SpdxIdentifierError;
 use crate::external_models::{
     normalized_string::NormalizedString,
     spdx::{SpdxExpression, SpdxIdentifier},
-    uri::Uri,
+    uri::{validate_uri, Uri},
 };
 use crate::models::attached_text::AttachedText;
 use crate::validation::{
     ValidateOld, ValidationContext, ValidationError, ValidationPathComponent, ValidationResult,
 };
 
+pub fn validate_license_choice(
+    license_choice: &LicenseChoice,
+) -> Result<(), validator::ValidationErrors> {
+    match license_choice {
+        LicenseChoice::License(license) => license.validate(),
+        LicenseChoice::Expression(expression) => expression.validate(),
+    }
+}
+
 /// Represents whether a license is a named license or an SPDX license expression
 ///
 /// As defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_licenseChoiceType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum LicenseChoice {
     License(License),
     Expression(SpdxExpression),
+}
+
+impl validator::Validate for LicenseChoice {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_license_choice(self)
+    }
 }
 
 impl LicenseChoice {
@@ -81,10 +99,13 @@ impl ValidateOld for LicenseChoice {
 /// Represents a license with identifier, text, and url
 ///
 /// Defined via the [CycloneDX XML schema](https://cyclonedx.org/docs/1.3/xml/#type_licenseType)
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, validator::Validate)]
 pub struct License {
+    #[validate]
     pub license_identifier: LicenseIdentifier,
+    #[validate]
     pub text: Option<AttachedText>,
+    #[validate(custom(function = "validate_uri"))]
     pub url: Option<Uri>,
 }
 
@@ -156,6 +177,16 @@ impl ValidateOld for License {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Licenses(pub Vec<LicenseChoice>);
 
+impl validator::Validate for Licenses {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, choice| {
+                validator::ValidationErrors::merge(result, "", choice.validate())
+            })
+    }
+}
+
 impl ValidateOld for Licenses {
     fn validate_with_context(
         &self,
@@ -175,12 +206,27 @@ impl ValidateOld for Licenses {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+pub fn validate_license_identifier(
+    identifier: &LicenseIdentifier,
+) -> Result<(), validator::ValidationErrors> {
+    match identifier {
+        LicenseIdentifier::Name(name) => name.validate(),
+        LicenseIdentifier::SpdxId(id) => id.validate(),
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub enum LicenseIdentifier {
     /// An SPDX license identifier from the list on the [SPDX website](https://spdx.org/licenses/).
     SpdxId(SpdxIdentifier),
     /// A license that is not in the SPDX license list (eg. a proprietary license or a license not yet recognized by SPDX).
     Name(NormalizedString),
+}
+
+impl validator::Validate for LicenseIdentifier {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        validate_license_identifier(self)
+    }
 }
 
 impl ValidateOld for LicenseIdentifier {

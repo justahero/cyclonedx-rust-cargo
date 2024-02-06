@@ -31,6 +31,16 @@ use crate::{
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Properties(pub Vec<Property>);
 
+impl validator::Validate for Properties {
+    fn validate(&self) -> Result<(), validator::ValidationErrors> {
+        self.0
+            .iter()
+            .fold(std::result::Result::Ok(()), |result, hash| {
+                validator::ValidationErrors::merge(result, "", hash.validate())
+            })
+    }
+}
+
 impl ValidateOld for Properties {
     fn validate_with_context(
         &self,
