@@ -101,6 +101,21 @@ impl AggregateType {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BomReference(pub(crate) String);
 
+impl BomReference {
+    pub fn new<T>(input: T) -> Self
+    where
+        T: ToString,
+    {
+        Self(input.to_string())
+    }
+}
+
+impl AsRef<String> for BomReference {
+    fn as_ref(&self) -> &String {
+        &self.0
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::{models::signature::Algorithm, validation};
